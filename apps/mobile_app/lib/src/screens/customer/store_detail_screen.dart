@@ -87,22 +87,44 @@ class _StoreDetailScreenState extends State<StoreDetailScreen> {
               background: Stack(
                 fit: StackFit.expand,
                 children: [
-                  Container(
-                    decoration: const BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [AppColors.primary, AppColors.primaryDark],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
+                  if (widget.store.imageUrl != null && widget.store.imageUrl!.isNotEmpty)
+                    Image.network(
+                      widget.store.imageUrl!,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) => Container(
+                        decoration: const BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [AppColors.primary, AppColors.primaryDark],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                        ),
+                        child: Center(
+                          child: Icon(
+                            Icons.storefront_outlined,
+                            size: 64,
+                            color: Colors.white.withAlpha(80),
+                          ),
+                        ),
+                      ),
+                    )
+                  else
+                    Container(
+                      decoration: const BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [AppColors.primary, AppColors.primaryDark],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                      ),
+                      child: Center(
+                        child: Icon(
+                          Icons.storefront_outlined,
+                          size: 64,
+                          color: Colors.white.withAlpha(80),
+                        ),
                       ),
                     ),
-                    child: Center(
-                      child: Icon(
-                        Icons.storefront_outlined,
-                        size: 64,
-                        color: Colors.white.withAlpha(80),
-                      ),
-                    ),
-                  ),
                   Container(
                     decoration: const BoxDecoration(
                       gradient: LinearGradient(

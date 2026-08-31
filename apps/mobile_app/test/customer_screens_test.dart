@@ -59,7 +59,7 @@ void main() {
       await tester.tap(find.text('Orders'));
       await tester.pumpAndSettle();
       expect(find.text('Your Orders'), findsOneWidget);
-      expect(find.text('Order #1084'), findsOneWidget);
+      expect(find.text('Order #1042'), findsOneWidget);
 
       // 4. Profile Tab
       await tester.tap(find.text('Profile'));

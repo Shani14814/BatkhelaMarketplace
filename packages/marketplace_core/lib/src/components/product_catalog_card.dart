@@ -143,8 +143,8 @@ class ProductCatalogCard extends StatelessWidget {
                       alignment: Alignment.bottomCenter,
                       children: [
                         Container(
-                          width: 84,
-                          height: 84,
+                          width: 88,
+                          height: 88,
                           decoration: const BoxDecoration(
                             borderRadius: AppRadius.roundedMd,
                             color: AppColors.backgroundLight,
@@ -154,6 +154,10 @@ class ProductCatalogCard extends StatelessWidget {
                               ? Image.network(
                                   imageUrl!,
                                   fit: BoxFit.cover,
+                                  loadingBuilder: (context, child, loadingProgress) {
+                                    if (loadingProgress == null) return child;
+                                    return _buildPlaceholder();
+                                  },
                                   errorBuilder: (context, error, stackTrace) => _buildPlaceholder(),
                                 )
                               : _buildPlaceholder(),
@@ -162,7 +166,7 @@ class ProductCatalogCard extends StatelessWidget {
                           Positioned.fill(
                             child: Container(
                               decoration: BoxDecoration(
-                                color: Colors.black.withAlpha(140),
+                                color: Colors.black.withAlpha(150),
                                 borderRadius: AppRadius.roundedMd,
                               ),
                               alignment: Alignment.center,
@@ -186,14 +190,14 @@ class ProductCatalogCard extends StatelessWidget {
                               child: Material(
                                 color: AppColors.primary,
                                 borderRadius: AppRadius.roundedFull,
-                                elevation: 2,
+                                elevation: 3,
                                 child: InkWell(
                                   onTap: onAdd,
                                   borderRadius: AppRadius.roundedFull,
                                   child: Container(
                                     padding: const EdgeInsets.symmetric(
                                       horizontal: AppSpacing.md,
-                                      vertical: 4,
+                                      vertical: 5,
                                     ),
                                     child: const Row(
                                       mainAxisSize: MainAxisSize.min,
@@ -231,12 +235,28 @@ class ProductCatalogCard extends StatelessWidget {
 
   Widget _buildPlaceholder() {
     return Container(
-      color: AppColors.backgroundLight,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            const Color(0xFFF1F5F9),
+            AppColors.primaryLight.withAlpha(120),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+      ),
       alignment: Alignment.center,
-      child: const Icon(
-        Icons.fastfood_outlined,
-        size: 32,
-        color: AppColors.textTertiary,
+      child: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: Colors.white.withAlpha(180),
+          shape: BoxShape.circle,
+        ),
+        child: const Icon(
+          Icons.fastfood_rounded,
+          size: 24,
+          color: AppColors.primary,
+        ),
       ),
     );
   }

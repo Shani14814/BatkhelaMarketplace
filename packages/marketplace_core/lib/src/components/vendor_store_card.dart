@@ -53,7 +53,7 @@ class VendorStoreCard extends StatelessWidget {
             children: [
               // Store Header Image with Overlays
               SizedBox(
-                height: 120,
+                height: 130,
                 width: double.infinity,
                 child: Stack(
                   fit: StackFit.expand,
@@ -62,10 +62,30 @@ class VendorStoreCard extends StatelessWidget {
                       Image.network(
                         imageUrl!,
                         fit: BoxFit.cover,
+                        loadingBuilder: (context, child, loadingProgress) {
+                          if (loadingProgress == null) return child;
+                          return _buildPlaceholder();
+                        },
                         errorBuilder: (context, error, stackTrace) => _buildPlaceholder(),
                       )
                     else
                       _buildPlaceholder(),
+
+                    // Subtle bottom gradient for readability
+                    Positioned.fill(
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [
+                              Colors.transparent,
+                              Colors.black.withAlpha(80),
+                            ],
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                          ),
+                        ),
+                      ),
+                    ),
 
                     // Closed Overlay if applicable
                     if (isClosed)
@@ -103,18 +123,25 @@ class VendorStoreCard extends StatelessWidget {
                             return Container(
                               padding: const EdgeInsets.symmetric(
                                 horizontal: AppSpacing.sm,
-                                vertical: 2,
+                                vertical: 3,
                               ),
-                              decoration: const BoxDecoration(
-                                color: AppColors.primary,
+                              decoration: BoxDecoration(
+                                color: AppColors.primaryDark.withAlpha(230),
                                 borderRadius: AppRadius.roundedFull,
+                                boxShadow: const [
+                                  BoxShadow(
+                                    color: Colors.black26,
+                                    blurRadius: 4,
+                                    offset: Offset(0, 1),
+                                  ),
+                                ],
                               ),
                               child: Text(
                                 badge,
                                 style: const TextStyle(
                                   color: Colors.white,
                                   fontSize: 10,
-                                  fontWeight: FontWeight.w600,
+                                  fontWeight: FontWeight.bold,
                                 ),
                               ),
                             );
@@ -145,6 +172,7 @@ class VendorStoreCard extends StatelessWidget {
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
+                        const SizedBox(width: 8),
                         // Rating Pill
                         Container(
                           padding: const EdgeInsets.symmetric(
@@ -159,8 +187,8 @@ class VendorStoreCard extends StatelessWidget {
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               const Icon(
-                                Icons.star,
-                                size: 14,
+                                Icons.star_rounded,
+                                size: 15,
                                 color: Color(0xFFD97706),
                               ),
                               const SizedBox(width: 2),
@@ -259,12 +287,29 @@ class VendorStoreCard extends StatelessWidget {
 
   Widget _buildPlaceholder() {
     return Container(
-      color: AppColors.backgroundLight,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            AppColors.primaryLight,
+            AppColors.softCyan.withAlpha(90),
+            const Color(0xFFE0F2FE),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+      ),
       alignment: Alignment.center,
-      child: const Icon(
-        Icons.storefront_outlined,
-        size: 40,
-        color: AppColors.textTertiary,
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Colors.white.withAlpha(200),
+          shape: BoxShape.circle,
+        ),
+        child: const Icon(
+          Icons.storefront_rounded,
+          size: 32,
+          color: AppColors.primary,
+        ),
       ),
     );
   }

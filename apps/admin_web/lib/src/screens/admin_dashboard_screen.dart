@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:marketplace_core/marketplace_core.dart';
+import '../data/admin_demo_data.dart';
 
 class AdminDashboardScreen extends StatefulWidget {
   const AdminDashboardScreen({super.key});
@@ -13,129 +14,48 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
   String _searchQuery = '';
   String _selectedStatusFilter = 'All';
 
-  // Sample operational mock data for dashboard presentation
-  final List<MarketplaceOrder> _mockOrders = [
-    MarketplaceOrder(
-      id: 'ORD-8821',
-      orderNumber: 1042,
-      customerId: 'CUST-001',
-      vendorId: 'VEND-001',
-      subtotal: 1850.0,
-      deliveryFee: 120.0,
-      platformFee: 50.0,
-      totalAmount: 2020.0,
-      status: OrderStatus.outForDelivery,
-      deliveryAddress: 'Main Bazaar Road, Near GPO, Batkhela',
-      createdAt: DateTime.now().subtract(const Duration(minutes: 18)),
-    ),
-    MarketplaceOrder(
-      id: 'ORD-8820',
-      orderNumber: 1041,
-      customerId: 'CUST-002',
-      vendorId: 'VEND-002',
-      subtotal: 940.0,
-      deliveryFee: 100.0,
-      platformFee: 30.0,
-      totalAmount: 1070.0,
-      status: OrderStatus.preparing,
-      deliveryAddress: 'Thana By-Pass Chowk, Batkhela',
-      createdAt: DateTime.now().subtract(const Duration(minutes: 32)),
-    ),
-    MarketplaceOrder(
-      id: 'ORD-8819',
-      orderNumber: 1040,
-      customerId: 'CUST-003',
-      vendorId: 'VEND-001',
-      subtotal: 3200.0,
-      deliveryFee: 150.0,
-      platformFee: 90.0,
-      totalAmount: 3440.0,
-      status: OrderStatus.delivered,
-      deliveryAddress: 'Civil Hospital Colony, Batkhela',
-      createdAt: DateTime.now().subtract(const Duration(hours: 1, minutes: 10)),
-    ),
-    MarketplaceOrder(
-      id: 'ORD-8818',
-      orderNumber: 1039,
-      customerId: 'CUST-004',
-      vendorId: 'VEND-003',
-      subtotal: 650.0,
-      deliveryFee: 80.0,
-      platformFee: 20.0,
-      totalAmount: 750.0,
-      status: OrderStatus.placed,
-      deliveryAddress: 'Ziarat Road, Mohalla Khanan, Batkhela',
-      createdAt: DateTime.now().subtract(const Duration(minutes: 5)),
-    ),
-  ];
-
-  final List<Vendor> _mockVendors = [
-    Vendor(
-      id: 'VEND-001',
-      storeName: 'Batkhela Shinwari Tikka & Karahi',
-      slug: 'batkhela-shinwari',
-      address: 'Main Grand Trunk Road, Batkhela',
-      phone: '+92 345 9876543',
-      isVerified: true,
-      isOpen: true,
-      commissionRate: 10.0,
-      createdAt: DateTime.now().subtract(const Duration(days: 45)),
-    ),
-    Vendor(
-      id: 'VEND-002',
-      storeName: 'Swat Valley Fresh Grocery & Fruits',
-      slug: 'swat-fresh-grocery',
-      address: 'Sabzi Mandi Road, Batkhela',
-      phone: '+92 300 1234567',
-      isVerified: true,
-      isOpen: true,
-      commissionRate: 8.0,
-      createdAt: DateTime.now().subtract(const Duration(days: 30)),
-    ),
-    Vendor(
-      id: 'VEND-003',
-      storeName: 'Malakand Bakers & Sweets',
-      slug: 'malakand-bakers',
-      address: 'College Road, Batkhela',
-      phone: '+92 312 3456789',
-      isVerified: false,
-      isOpen: true,
-      commissionRate: 10.0,
-      createdAt: DateTime.now().subtract(const Duration(days: 2)),
-    ),
-  ];
-
   @override
   Widget build(BuildContext context) {
     final isDesktop = MediaQuery.of(context).size.width >= 1024;
 
-    return Scaffold(
-      body: Row(
-        children: [
-          // Sidebar Navigation (for Desktop/Tablet)
-          if (isDesktop) _buildSidebar(),
+    return AnimatedBuilder(
+      animation: AdminDemoController.instance,
+      builder: (context, _) {
+        final ctrl = AdminDemoController.instance;
 
-          // Main Content Area
-          Expanded(
-            child: Column(
-              children: [
-                _buildTopAppBar(isDesktop),
-                Expanded(
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.all(24.0),
-                    child: _buildSelectedTabContent(),
-                  ),
+        return Scaffold(
+          backgroundColor: AppColors.backgroundLight,
+          body: Row(
+            children: [
+              // Persistent Sidebar Navigation (Desktop)
+              if (isDesktop) _buildSidebar(ctrl),
+
+              // Main Content Area
+              Expanded(
+                child: Column(
+                  children: [
+                    _buildTopAppBar(isDesktop, ctrl),
+                    Expanded(
+                      child: SingleChildScrollView(
+                        padding: const EdgeInsets.all(24.0),
+                        child: _buildSelectedTabContent(ctrl),
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
-        ],
-      ),
-      drawer: isDesktop ? null : Drawer(child: _buildSidebar(isDrawer: true)),
+          drawer: isDesktop ? null : Drawer(child: _buildSidebar(ctrl, isDrawer: true)),
+        );
+      },
     );
   }
 
-  Widget _buildSidebar({bool isDrawer = false}) {
+  // ----------------------------------------------------
+  // SIDEBAR NAVIGATION
+  // ----------------------------------------------------
+  Widget _buildSidebar(AdminDemoController ctrl, {bool isDrawer = false}) {
     return Container(
       width: 260,
       color: const Color(0xFF0F172A),
@@ -150,49 +70,56 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: AppTheme.primaryGreen,
+                    color: AppColors.primary,
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: const Icon(Icons.storefront, color: Colors.white, size: 22),
                 ),
-                const SizedBox(width: 12),
-                const Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'BATKHELA',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                        letterSpacing: 1.1,
+                const SizedBox(width: 10),
+                const Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'BATKHELA',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 15,
+                          letterSpacing: 1.1,
+                        ),
                       ),
-                    ),
-                    Text(
-                      'Super Admin',
-                      style: TextStyle(
-                        color: Color(0xFF94A3B8),
-                        fontSize: 12,
+                      Text(
+                        'Super Admin Control',
+                        style: TextStyle(
+                          color: Color(0xFF94A3B8),
+                          fontSize: 11,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ],
             ),
           ),
           const Divider(color: Color(0xFF1E293B), height: 1),
 
-          // Menu Items
+          // Menu Items (9 Domains)
           Expanded(
             child: ListView(
               padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
               children: [
-                _navItem(0, Icons.dashboard_outlined, 'Operations Overview'),
-                _navItem(1, Icons.shopping_bag_outlined, 'Live Orders'),
-                _navItem(2, Icons.store_outlined, 'Vendor Stores'),
-                _navItem(3, Icons.two_wheeler_outlined, 'Rider Fleet'),
-                _navItem(4, Icons.account_balance_wallet_outlined, 'Financials & Payouts'),
-                _navItem(5, Icons.settings_outlined, 'Platform Settings'),
+                _navItem(0, Icons.dashboard_outlined, 'Overview'),
+                _navItem(1, Icons.people_outline, 'Customers'),
+                _navItem(2, Icons.storefront_outlined, 'Vendors',
+                    badge: ctrl.vendors.where((v) => v.status == ApprovalStatus.pending).length),
+                _navItem(3, Icons.two_wheeler_outlined, 'Riders',
+                    badge: ctrl.riders.where((r) => r.status == ApprovalStatus.pending).length),
+                _navItem(4, Icons.receipt_long_outlined, 'Orders'),
+                _navItem(5, Icons.category_outlined, 'Categories'),
+                _navItem(6, Icons.view_quilt_outlined, 'Homepage'),
+                _navItem(7, Icons.campaign_outlined, 'Promotions'),
+                _navItem(8, Icons.settings_outlined, 'Settings'),
               ],
             ),
           ),
@@ -207,7 +134,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
             child: const Row(
               children: [
                 CircleAvatar(
-                  backgroundColor: AppTheme.primaryGreen,
+                  backgroundColor: AppColors.primary,
                   child: Text('SA', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                 ),
                 SizedBox(width: 12),
@@ -216,12 +143,12 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Admin Operations',
+                        'Platform Admin',
                         style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 13),
                         overflow: TextOverflow.ellipsis,
                       ),
                       Text(
-                        'Batkhela Central',
+                        'Batkhela Central Hub',
                         style: TextStyle(color: Color(0xFF64748B), fontSize: 11),
                       ),
                     ],
@@ -235,12 +162,12 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     );
   }
 
-  Widget _navItem(int index, IconData icon, String title) {
+  Widget _navItem(int index, IconData icon, String title, {int badge = 0}) {
     final isSelected = _selectedTabIndex == index;
     return Padding(
       padding: const EdgeInsets.only(bottom: 4),
       child: Material(
-        color: isSelected ? AppTheme.primaryGreen : Colors.transparent,
+        color: isSelected ? AppColors.primary : Colors.transparent,
         borderRadius: BorderRadius.circular(8),
         child: ListTile(
           leading: Icon(icon, color: isSelected ? Colors.white : const Color(0xFF94A3B8), size: 20),
@@ -252,11 +179,22 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
               fontSize: 14,
             ),
           ),
+          trailing: badge > 0
+              ? Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: AppColors.coral,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Text(
+                    '$badge',
+                    style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                  ),
+                )
+              : null,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           onTap: () {
-            setState(() {
-              _selectedTabIndex = index;
-            });
+            setState(() => _selectedTabIndex = index);
             if (Scaffold.maybeOf(context)?.isDrawerOpen ?? false) {
               Navigator.pop(context);
             }
@@ -266,13 +204,13 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     );
   }
 
-  Widget _buildTopAppBar(bool isDesktop) {
+  Widget _buildTopAppBar(bool isDesktop, AdminDemoController ctrl) {
     return Container(
       height: 70,
       padding: const EdgeInsets.symmetric(horizontal: 24),
       decoration: const BoxDecoration(
         color: Colors.white,
-        border: Border(bottom: BorderSide(color: AppTheme.borderSubtle)),
+        border: Border(bottom: BorderSide(color: Color(0xFFE2E8F0))),
       ),
       child: Row(
         children: [
@@ -281,32 +219,35 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
               icon: const Icon(Icons.menu),
               onPressed: () => Scaffold.of(context).openDrawer(),
             ),
-          Text(
-            _getTabTitle(),
-            style: const TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: AppTheme.textDark,
+          Expanded(
+            child: Text(
+              _getTabTitle(),
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
+              ),
             ),
           ),
-          const Spacer(),
-          // Live Realtime Indicator
+          const SizedBox(width: 16),
+          // Live Node Telemetry Indicator
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
-              color: AppTheme.successGreen.withAlpha(20),
+              color: AppColors.primary.withAlpha(15),
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: AppTheme.successGreen.withAlpha(60)),
+              border: Border.all(color: AppColors.primary.withAlpha(50)),
             ),
             child: const Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                CircleAvatar(radius: 4, backgroundColor: AppTheme.successGreen),
+                CircleAvatar(radius: 4, backgroundColor: AppColors.primary),
                 SizedBox(width: 8),
                 Text(
                   'Batkhela Node: LIVE',
                   style: TextStyle(
-                    color: AppTheme.successGreen,
+                    color: AppColors.primary,
                     fontWeight: FontWeight.w600,
                     fontSize: 12,
                   ),
@@ -322,46 +263,65 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
   String _getTabTitle() {
     switch (_selectedTabIndex) {
       case 0:
-        return 'Operations Dashboard';
+        return 'Operations Overview';
       case 1:
-        return 'Live Orders & Dispatch';
+        return 'Customer Directory';
       case 2:
-        return 'Store & Vendor Directory';
+        return 'Vendor Management & Approvals';
       case 3:
         return 'Rider Fleet & Telemetry';
       case 4:
-        return 'Financials & Commissions';
+        return 'Platform Orders Center';
       case 5:
-        return 'Marketplace Configuration';
+        return 'Marketplace Categories';
+      case 6:
+        return 'Dynamic Homepage Management';
+      case 7:
+        return 'Promotions & Banner Campaigns';
+      case 8:
+        return 'Platform Settings & Regional Expansion';
       default:
-        return 'Admin Dashboard';
+        return 'Super Admin Dashboard';
     }
   }
 
-  Widget _buildSelectedTabContent() {
+  Widget _buildSelectedTabContent(AdminDemoController ctrl) {
     switch (_selectedTabIndex) {
       case 0:
-        return _buildOverviewTab();
+        return _buildOverviewTab(ctrl);
       case 1:
-        return _buildOrdersTab();
+        return _buildCustomersTab(ctrl);
       case 2:
-        return _buildVendorsTab();
+        return _buildVendorsTab(ctrl);
       case 3:
-        return _buildRidersTab();
+        return _buildRidersTab(ctrl);
+      case 4:
+        return _buildOrdersTab(ctrl);
+      case 5:
+        return _buildCategoriesTab(ctrl);
+      case 6:
+        return _buildHomepageTab(ctrl);
+      case 7:
+        return _buildPromotionsTab(ctrl);
+      case 8:
+        return _buildSettingsTab(ctrl);
       default:
-        return _buildOverviewTab();
+        return _buildOverviewTab(ctrl);
     }
   }
 
-  Widget _buildOverviewTab() {
+  // ----------------------------------------------------
+  // 1. OVERVIEW TAB
+  // ----------------------------------------------------
+  Widget _buildOverviewTab(AdminDemoController ctrl) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // KPI Cards Row
+        // 6 Platform KPIs Grid
         LayoutBuilder(
           builder: (context, constraints) {
             final cardWidth = constraints.maxWidth > 1100
-                ? (constraints.maxWidth - 48) / 4
+                ? (constraints.maxWidth - 32) / 3
                 : (constraints.maxWidth > 650
                     ? (constraints.maxWidth - 16) / 2
                     : constraints.maxWidth);
@@ -371,44 +331,67 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
               children: [
                 SizedBox(
                   width: cardWidth,
-                  child: const KpiCard(
-                    title: 'Gross Daily Sales',
-                    value: 'Rs. 48,250',
+                  child: KpiCard(
+                    title: 'Gross Platform GMV',
+                    value: 'PKR ${ctrl.todayPlatformGmv.toStringAsFixed(0)}',
                     icon: Icons.payments_outlined,
-                    iconColor: AppTheme.primaryGreen,
-                    trend: '+14.2% vs yesterday',
+                    iconColor: AppColors.primary,
+                    trend: '+16.8% vs yesterday',
                     isPositive: true,
                   ),
                 ),
                 SizedBox(
                   width: cardWidth,
-                  child: const KpiCard(
-                    title: 'Active Orders',
-                    value: '19 Orders',
-                    icon: Icons.local_shipping_outlined,
-                    iconColor: AppTheme.statusOutForDelivery,
-                    subtitle: '4 out for delivery',
+                  child: KpiCard(
+                    title: 'Platform Fee Revenue',
+                    value: 'PKR ${ctrl.todayPlatformRevenue.toStringAsFixed(0)}',
+                    icon: Icons.account_balance_wallet_outlined,
+                    iconColor: AppColors.indigo,
+                    trend: '10% average take rate',
+                    isPositive: true,
                   ),
                 ),
                 SizedBox(
                   width: cardWidth,
-                  child: const KpiCard(
-                    title: 'Registered Stores',
-                    value: '34 Vendors',
+                  child: KpiCard(
+                    title: 'Orders Today',
+                    value: '${ctrl.todayOrdersCount} Orders',
+                    icon: Icons.receipt_long_outlined,
+                    iconColor: AppColors.coral,
+                    trend: 'All in Batkhela',
+                    isPositive: true,
+                  ),
+                ),
+                SizedBox(
+                  width: cardWidth,
+                  child: KpiCard(
+                    title: 'Active Vendors',
+                    value: '${ctrl.activeVendorsCount} Stores',
                     icon: Icons.storefront_outlined,
-                    iconColor: AppTheme.accentGold,
-                    trend: '+3 pending approval',
+                    iconColor: AppColors.primary,
+                    trend: '${ctrl.vendors.where((v) => v.status == ApprovalStatus.pending).length} pending approval',
                     isPositive: true,
                   ),
                 ),
                 SizedBox(
                   width: cardWidth,
-                  child: const KpiCard(
+                  child: KpiCard(
                     title: 'Active Riders Online',
-                    value: '12 Riders',
-                    icon: Icons.electric_moped_outlined,
-                    iconColor: Color(0xFF0284C7),
-                    subtitle: 'Avg delivery: 24 mins',
+                    value: '${ctrl.activeRidersCount} Riders',
+                    icon: Icons.two_wheeler_outlined,
+                    iconColor: AppColors.indigo,
+                    subtitle: 'Avg dispatch time: 6 mins',
+                  ),
+                ),
+                SizedBox(
+                  width: cardWidth,
+                  child: KpiCard(
+                    title: 'Registered Customers',
+                    value: '${ctrl.totalCustomersCount} Users',
+                    icon: Icons.people_outline,
+                    iconColor: AppColors.coral,
+                    trend: 'Batkhela Urban',
+                    isPositive: true,
                   ),
                 ),
               ],
@@ -417,29 +400,403 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
         ),
         const SizedBox(height: 32),
 
-        // Live Orders Section
+        // Urgent Action Banner if approvals are pending
+        if (ctrl.pendingApprovalsCount > 0) ...[
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: AppColors.coral.withAlpha(15),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: AppColors.coral.withAlpha(50)),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.warning_amber_rounded, color: AppColors.coral, size: 28),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '${ctrl.pendingApprovalsCount} Partner Applications Awaiting Review',
+                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: AppColors.coral),
+                      ),
+                      const Text(
+                        'Verify vendor business credentials and rider CNIC documents to expand capacity.',
+                        style: TextStyle(fontSize: 12, color: Colors.black87),
+                      ),
+                    ],
+                  ),
+                ),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.coral,
+                    foregroundColor: Colors.white,
+                  ),
+                  onPressed: () => setState(() => _selectedTabIndex = 2),
+                  child: const Text('Review Approvals'),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
+        ],
+
+        // Recent Realtime Orders Stream
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             const Text(
               'Realtime Orders Stream',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.textDark),
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             TextButton.icon(
-              onPressed: () => setState(() => _selectedTabIndex = 1),
+              onPressed: () => setState(() => _selectedTabIndex = 4),
               icon: const Icon(Icons.arrow_forward, size: 16),
               label: const Text('View All Orders'),
             ),
           ],
         ),
         const SizedBox(height: 12),
-        _buildOrdersTable(_mockOrders),
+        _buildOrdersTable(ctrl.orders),
       ],
     );
   }
 
-  Widget _buildOrdersTab() {
-    final filteredOrders = _mockOrders.where((order) {
+  // ----------------------------------------------------
+  // 2. CUSTOMERS TAB
+  // ----------------------------------------------------
+  Widget _buildCustomersTab(AdminDemoController ctrl) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text(
+              'Customer Management Directory',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: AppColors.primary.withAlpha(20),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(
+                '${ctrl.customers.length} Registered Customers',
+                style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary, fontSize: 12),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: const Color(0xFFE2E8F0)),
+          ),
+          child: Table(
+            columnWidths: const {
+              0: FlexColumnWidth(1.5),
+              1: FlexColumnWidth(1.8),
+              2: FlexColumnWidth(2.5),
+              3: FlexColumnWidth(1.2),
+              4: FlexColumnWidth(1.4),
+              5: FlexColumnWidth(1.2),
+            },
+            children: [
+              TableRow(
+                decoration: const BoxDecoration(
+                  color: Color(0xFFF8FAFC),
+                  border: Border(bottom: BorderSide(color: Color(0xFFE2E8F0))),
+                ),
+                children: [
+                  _tableHeader('Customer ID'),
+                  _tableHeader('Name & Phone'),
+                  _tableHeader('Batkhela Area'),
+                  _tableHeader('Orders'),
+                  _tableHeader('Total Spend'),
+                  _tableHeader('Status'),
+                ],
+              ),
+              ...ctrl.customers.map((c) {
+                return TableRow(
+                  decoration: const BoxDecoration(
+                    border: Border(bottom: BorderSide(color: Color(0xFFE2E8F0))),
+                  ),
+                  children: [
+                    _tableCell(c.id),
+                    _tableCell('${c.name}\n${c.phone}', isBold: true),
+                    _tableCell(c.area),
+                    _tableCell('${c.totalOrders} orders'),
+                    _tableCell('PKR ${c.totalSpend.toStringAsFixed(0)}', isBold: true),
+                    Padding(
+                      padding: const EdgeInsets.all(12),
+                      child: Chip(
+                        label: const Text('Active', style: TextStyle(color: AppColors.success, fontSize: 11, fontWeight: FontWeight.bold)),
+                        backgroundColor: AppColors.success.withAlpha(20),
+                      ),
+                    ),
+                  ],
+                );
+              }),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ----------------------------------------------------
+  // 3. VENDORS TAB
+  // ----------------------------------------------------
+  Widget _buildVendorsTab(AdminDemoController ctrl) {
+    final pending = ctrl.vendors.where((v) => v.status == ApprovalStatus.pending).toList();
+    final approved = ctrl.vendors.where((v) => v.status == ApprovalStatus.approved).toList();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Pending Queue
+        if (pending.isNotEmpty) ...[
+          Row(
+            children: [
+              const Text(
+                'Vendor Applications Pending Approval',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.coral),
+              ),
+              const SizedBox(width: 8),
+              CircleAvatar(
+                radius: 10,
+                backgroundColor: AppColors.coral,
+                child: Text('${pending.length}', style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          ...pending.map((v) => _buildVendorApplicationCard(v, isPending: true)),
+          const SizedBox(height: 24),
+        ],
+
+        // Approved Directory
+        const Text(
+          'Approved Marketplace Stores',
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 12),
+        ...approved.map((v) => _buildVendorApplicationCard(v, isPending: false)),
+      ],
+    );
+  }
+
+  Widget _buildVendorApplicationCard(AdminVendorApplication v, {required bool isPending}) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: isPending ? AppColors.coral.withAlpha(50) : const Color(0xFFE2E8F0)),
+      ),
+      color: Colors.white,
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Row(
+          children: [
+            CircleAvatar(
+              backgroundColor: isPending ? AppColors.coral.withAlpha(20) : AppColors.primary.withAlpha(20),
+              child: Icon(Icons.storefront, color: isPending ? AppColors.coral : AppColors.primary),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Wrap(
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    spacing: 8,
+                    runSpacing: 4,
+                    children: [
+                      Text(v.businessName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: AppColors.indigo.withAlpha(20),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(v.category, style: const TextStyle(fontSize: 11, color: AppColors.indigo, fontWeight: FontWeight.bold)),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text('Owner: ${v.ownerName} • Phone: ${v.phone}', style: TextStyle(color: Colors.grey.shade700, fontSize: 12)),
+                  Text(v.address, style: TextStyle(color: Colors.grey.shade600, fontSize: 11)),
+                ],
+              ),
+            ),
+            if (isPending) ...[
+              OutlinedButton(
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppColors.error,
+                  side: const BorderSide(color: AppColors.error),
+                ),
+                onPressed: () {
+                  AdminDemoController.instance.rejectVendor(v.id);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Vendor ${v.businessName} rejected.')),
+                  );
+                },
+                child: const Text('Reject'),
+              ),
+              const SizedBox(width: 8),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: Colors.white,
+                ),
+                onPressed: () {
+                  AdminDemoController.instance.approveVendor(v.id);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Vendor ${v.businessName} Approved! Store is now live.')),
+                  );
+                },
+                child: const Text('Approve Store'),
+              ),
+            ] else ...[
+              Chip(
+                label: const Text('Approved & Live', style: TextStyle(color: AppColors.success, fontSize: 11, fontWeight: FontWeight.bold)),
+                backgroundColor: AppColors.success.withAlpha(20),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ----------------------------------------------------
+  // 4. RIDERS TAB
+  // ----------------------------------------------------
+  Widget _buildRidersTab(AdminDemoController ctrl) {
+    final pending = ctrl.riders.where((r) => r.status == ApprovalStatus.pending).toList();
+    final approved = ctrl.riders.where((r) => r.status == ApprovalStatus.approved).toList();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (pending.isNotEmpty) ...[
+          Row(
+            children: [
+              const Text(
+                'Rider Applicants Awaiting Verification',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.coral),
+              ),
+              const SizedBox(width: 8),
+              CircleAvatar(
+                radius: 10,
+                backgroundColor: AppColors.coral,
+                child: Text('${pending.length}', style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          ...pending.map((r) => _buildRiderCard(r, isPending: true)),
+          const SizedBox(height: 24),
+        ],
+
+        const Text(
+          'Active Delivery Fleet Roster',
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 12),
+        ...approved.map((r) => _buildRiderCard(r, isPending: false)),
+      ],
+    );
+  }
+
+  Widget _buildRiderCard(AdminRiderApplication r, {required bool isPending}) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: isPending ? AppColors.coral.withAlpha(50) : const Color(0xFFE2E8F0)),
+      ),
+      color: Colors.white,
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Row(
+          children: [
+            CircleAvatar(
+              backgroundColor: isPending ? AppColors.coral.withAlpha(20) : AppColors.indigo.withAlpha(20),
+              child: Icon(Icons.two_wheeler, color: isPending ? AppColors.coral : AppColors.indigo),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Wrap(
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    spacing: 8,
+                    runSpacing: 4,
+                    children: [
+                      Text(r.riderName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                      Text('${r.rating} ★', style: const TextStyle(color: AppColors.warning, fontWeight: FontWeight.bold, fontSize: 12)),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text('${r.vehicleType} • Plate: ${r.plateNumber} • CNIC: ${r.cnic}', style: TextStyle(color: Colors.grey.shade700, fontSize: 12)),
+                  Text('${r.completedTrips} deliveries completed', style: TextStyle(color: Colors.grey.shade600, fontSize: 11)),
+                ],
+              ),
+            ),
+            if (isPending) ...[
+              OutlinedButton(
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppColors.error,
+                  side: const BorderSide(color: AppColors.error),
+                ),
+                onPressed: () {
+                  AdminDemoController.instance.rejectRider(r.id);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Rider ${r.riderName} rejected.')),
+                  );
+                },
+                child: const Text('Decline'),
+              ),
+              const SizedBox(width: 8),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: Colors.white,
+                ),
+                onPressed: () {
+                  AdminDemoController.instance.approveRider(r.id);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Rider ${r.riderName} Approved for Batkhela dispatch!')),
+                  );
+                },
+                child: const Text('Approve Rider'),
+              ),
+            ] else ...[
+              Chip(
+                label: const Text('Active Partner', style: TextStyle(color: AppColors.success, fontSize: 11, fontWeight: FontWeight.bold)),
+                backgroundColor: AppColors.success.withAlpha(20),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ----------------------------------------------------
+  // 5. ORDERS TAB
+  // ----------------------------------------------------
+  Widget _buildOrdersTab(AdminDemoController ctrl) {
+    final filteredOrders = ctrl.orders.where((order) {
       final matchesStatus = _selectedStatusFilter == 'All' ||
           order.status.toDbString() == _selectedStatusFilter;
       final matchesQuery = _searchQuery.isEmpty ||
@@ -451,14 +808,15 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Filter Bar
         Row(
           children: [
             Expanded(
               child: TextField(
                 decoration: const InputDecoration(
-                  hintText: 'Search by Order ID, Customer Phone, or Store...',
+                  hintText: 'Search by Order ID, Customer, or Delivery Area...',
                   prefixIcon: Icon(Icons.search, size: 20),
+                  filled: true,
+                  fillColor: Colors.white,
                 ),
                 onChanged: (val) => setState(() => _searchQuery = val),
               ),
@@ -484,23 +842,22 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppTheme.borderSubtle),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
       ),
       child: Table(
         columnWidths: const {
           0: FlexColumnWidth(1.2),
-          1: FlexColumnWidth(1.5),
-          2: FlexColumnWidth(2.0),
-          3: FlexColumnWidth(1.2),
-          4: FlexColumnWidth(1.3),
+          1: FlexColumnWidth(1.8),
+          2: FlexColumnWidth(2.5),
+          3: FlexColumnWidth(1.3),
+          4: FlexColumnWidth(2.0),
           5: FlexColumnWidth(1.2),
         },
         children: [
-          // Header
           TableRow(
             decoration: const BoxDecoration(
               color: Color(0xFFF8FAFC),
-              border: Border(bottom: BorderSide(color: AppTheme.borderSubtle)),
+              border: Border(bottom: BorderSide(color: Color(0xFFE2E8F0))),
             ),
             children: [
               _tableHeader('Order #'),
@@ -511,22 +868,32 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
               _tableHeader('Action'),
             ],
           ),
-          // Rows
           ...orders.map((order) {
             return TableRow(
               decoration: const BoxDecoration(
-                border: Border(bottom: BorderSide(color: AppTheme.borderSubtle)),
+                border: Border(bottom: BorderSide(color: Color(0xFFE2E8F0))),
               ),
               children: [
                 _tableCell('#${order.orderNumber ?? order.id}'),
                 _tableCell(order.vendorId == 'VEND-001' ? 'Shinwari Tikka' : 'Swat Grocery'),
                 _tableCell(order.deliveryAddress),
-                _tableCell('Rs. ${order.totalAmount.toStringAsFixed(0)}', isBold: true),
-                _statusBadge(order.status),
+                _tableCell('PKR ${order.totalAmount.toStringAsFixed(0)}', isBold: true),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: Alignment.centerLeft,
+                    child: MarketplaceStatusBadge.fromOrderStatus(order.status),
+                  ),
+                ),
                 Padding(
                   padding: const EdgeInsets.all(12),
                   child: OutlinedButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Inspecting Order #${order.orderNumber ?? order.id}')),
+                      );
+                    },
                     style: OutlinedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                       textStyle: const TextStyle(fontSize: 12),
@@ -542,7 +909,10 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     );
   }
 
-  Widget _buildVendorsTab() {
+  // ----------------------------------------------------
+  // 6. CATEGORIES TAB
+  // ----------------------------------------------------
+  Widget _buildCategoriesTab(AdminDemoController ctrl) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -550,46 +920,190 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             const Text(
-              'Store Directory & Verification Queue',
+              'Marketplace Category Catalog',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             ElevatedButton.icon(
-              onPressed: () {},
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+              ),
+              onPressed: () => _showAddCategoryDialog(context),
               icon: const Icon(Icons.add, size: 18),
-              label: const Text('Add Store'),
+              label: const Text('Add Category'),
             ),
           ],
         ),
+        const SizedBox(height: 16),
+        ...ctrl.categories.map((cat) {
+          return Card(
+            margin: const EdgeInsets.only(bottom: 10),
+            elevation: 0,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+              side: BorderSide(color: cat.isEnabled ? const Color(0xFFE2E8F0) : Colors.grey.shade300),
+            ),
+            color: Colors.white,
+            child: ListTile(
+              leading: CircleAvatar(
+                backgroundColor: cat.isEnabled ? AppColors.primary.withAlpha(20) : Colors.grey.shade200,
+                child: Icon(Icons.category, color: cat.isEnabled ? AppColors.primary : Colors.grey),
+              ),
+              title: Text(cat.name, style: TextStyle(fontWeight: FontWeight.bold, color: cat.isEnabled ? Colors.black87 : Colors.grey)),
+              subtitle: Text('Display Order: ${cat.displayOrder} • ${cat.productCount} active products in Batkhela'),
+              trailing: Switch(
+                value: cat.isEnabled,
+                activeThumbColor: AppColors.primary,
+                onChanged: (val) {
+                  ctrl.toggleCategory(cat.id, val);
+                },
+              ),
+            ),
+          );
+        }),
+      ],
+    );
+  }
+
+  void _showAddCategoryDialog(BuildContext context) {
+    final nameController = TextEditingController();
+
+    showDialog<void>(
+      context: context,
+      builder: (ctx) {
+        return AlertDialog(
+          title: const Text('Add Marketplace Category'),
+          content: TextField(
+            controller: nameController,
+            decoration: const InputDecoration(labelText: 'Category Name (e.g. Traditional Sweets)'),
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white),
+              onPressed: () {
+                if (nameController.text.trim().isNotEmpty) {
+                  AdminDemoController.instance.addCategory(nameController.text.trim(), 'store');
+                  Navigator.pop(ctx);
+                }
+              },
+              child: const Text('Create Category'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // ----------------------------------------------------
+  // 7. HOMEPAGE TAB
+  // ----------------------------------------------------
+  Widget _buildHomepageTab(AdminDemoController ctrl) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Dynamic Customer Homepage Section Manager',
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 6),
+        const Text(
+          'Configure homepage layout sections, enable seasonal feeds, and adjust marketplace discovery ordering.',
+          style: TextStyle(fontSize: 13, color: Colors.black54),
+        ),
         const SizedBox(height: 20),
-        ..._mockVendors.map((vendor) {
+        ...ctrl.homepageSections.map((sec) {
           return Card(
             margin: const EdgeInsets.only(bottom: 12),
+            elevation: 0,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+              side: const BorderSide(color: Color(0xFFE2E8F0)),
+            ),
+            color: Colors.white,
             child: ListTile(
-              contentPadding: const EdgeInsets.all(16),
               leading: CircleAvatar(
-                backgroundColor: AppTheme.primaryGreen.withAlpha(30),
-                child: const Icon(Icons.store, color: AppTheme.primaryGreen),
+                backgroundColor: AppColors.indigo.withAlpha(20),
+                child: Text('${sec.displayOrder}', style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.indigo)),
               ),
-              title: Text(vendor.storeName, style: const TextStyle(fontWeight: FontWeight.bold)),
-              subtitle: Text('${vendor.address} • ${vendor.phone ?? 'No Phone'}'),
-              trailing: Row(
-                mainAxisSize: MainAxisSize.min,
+              title: Text(sec.title, style: const TextStyle(fontWeight: FontWeight.bold)),
+              subtitle: Text('Component Type: ${sec.sectionType}'),
+              trailing: Switch(
+                value: sec.isVisible,
+                activeThumbColor: AppColors.primary,
+                onChanged: (val) {
+                  ctrl.toggleHomepageSection(sec.id, val);
+                },
+              ),
+            ),
+          );
+        }),
+      ],
+    );
+  }
+
+  // ----------------------------------------------------
+  // 8. PROMOTIONS TAB
+  // ----------------------------------------------------
+  Widget _buildPromotionsTab(AdminDemoController ctrl) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text(
+              'Banner Campaigns & Store Boosts',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white),
+              onPressed: () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Campaign creation dialog opened.')),
+                );
+              },
+              icon: const Icon(Icons.add, size: 18),
+              label: const Text('New Campaign'),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        ...ctrl.promotions.map((prom) {
+          return Card(
+            margin: const EdgeInsets.only(bottom: 12),
+            elevation: 0,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+              side: const BorderSide(color: Color(0xFFE2E8F0)),
+            ),
+            color: Colors.white,
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Row(
                 children: [
-                  Chip(
-                    label: Text(
-                      vendor.isVerified ? 'Verified' : 'Pending Verification',
-                      style: TextStyle(
-                        color: vendor.isVerified ? AppTheme.successGreen : AppTheme.statusPreparing,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 12,
-                      ),
-                    ),
-                    backgroundColor: (vendor.isVerified ? AppTheme.successGreen : AppTheme.statusPreparing).withAlpha(20),
+                  CircleAvatar(
+                    backgroundColor: AppColors.coral.withAlpha(20),
+                    child: const Icon(Icons.campaign, color: AppColors.coral),
                   ),
-                  const SizedBox(width: 12),
-                  IconButton(
-                    icon: const Icon(Icons.edit_outlined),
-                    onPressed: () {},
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(prom.title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                        Text('Merchant: ${prom.storeName}', style: TextStyle(color: Colors.grey.shade700, fontSize: 12)),
+                        const SizedBox(height: 4),
+                        Text(prom.discountBannerText, style: const TextStyle(fontSize: 12, color: AppColors.primary, fontWeight: FontWeight.bold)),
+                      ],
+                    ),
+                  ),
+                  Switch(
+                    value: prom.isActive,
+                    activeThumbColor: AppColors.primary,
+                    onChanged: (val) {
+                      ctrl.togglePromotion(prom.id, val);
+                    },
                   ),
                 ],
               ),
@@ -600,40 +1114,91 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     );
   }
 
-  Widget _buildRidersTab() {
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppTheme.borderSubtle),
-      ),
-      child: const Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Batkhela Rider Fleet & Live GPS Radar',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+  // ----------------------------------------------------
+  // 9. SETTINGS TAB
+  // ----------------------------------------------------
+  Widget _buildSettingsTab(AdminDemoController ctrl) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Platform Governance & Regional Expansion',
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 16),
+
+        // Branding & Fee Settings Card
+        Card(
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+            side: const BorderSide(color: Color(0xFFE2E8F0)),
           ),
-          SizedBox(height: 12),
-          Text(
-            'Riders connected via Supabase Realtime channel stream live coordinates to this central monitoring board.',
-            style: TextStyle(color: AppTheme.textMuted),
-          ),
-          SizedBox(height: 24),
-          Center(
-            child: Padding(
-              padding: EdgeInsets.all(32.0),
-              child: Column(
-                children: [
-                  Icon(Icons.radar, size: 64, color: AppTheme.primaryGreen),
-                  SizedBox(height: 12),
-                  Text('12 Active Riders Broadcasting Live Telemetry', style: TextStyle(fontWeight: FontWeight.w600)),
-                  Text('Batkhela Center Coordinates: 34.6186° N, 71.9723° E', style: TextStyle(color: AppTheme.textMuted, fontSize: 12)),
-                ],
-              ),
+          color: Colors.white,
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('Marketplace Core Configuration', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                const Divider(height: 24),
+                _buildSettingRow('App Name', ctrl.settings.marketplaceName),
+                _buildSettingRow('Default Operations Hub', ctrl.settings.defaultCity),
+                _buildSettingRow('Currency Token', ctrl.settings.currency),
+                _buildSettingRow('Base Delivery Fee', 'PKR ${ctrl.settings.baseDeliveryFee.toStringAsFixed(0)}'),
+                _buildSettingRow('Platform Commission Rate', '${ctrl.settings.platformCommissionPercent.toStringAsFixed(1)}%'),
+                _buildSettingRow('Merchant Support Line', ctrl.settings.supportPhone),
+                _buildSettingRow('Urdu Localization Readiness', ctrl.settings.urduEnabled ? 'Enabled (اردو / Noto Nastaliq)' : 'Disabled'),
+              ],
             ),
           ),
+        ),
+        const SizedBox(height: 24),
+
+        // Multi-City Expansion Matrix
+        const Text(
+          'Regional Expansion Matrix',
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 8),
+        ...ctrl.regionalCities.map((city) {
+          return Card(
+            margin: const EdgeInsets.only(bottom: 8),
+            elevation: 0,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+              side: const BorderSide(color: Color(0xFFE2E8F0)),
+            ),
+            color: Colors.white,
+            child: ListTile(
+              leading: Icon(
+                city.isActive ? Icons.location_city : Icons.location_off_outlined,
+                color: city.isActive ? AppColors.primary : Colors.grey,
+              ),
+              title: Text(city.cityName, style: TextStyle(fontWeight: FontWeight.bold, color: city.isActive ? Colors.black87 : Colors.grey)),
+              subtitle: Text('${city.province} • ${city.vendorCount} Active Stores'),
+              trailing: Switch(
+                value: city.isActive,
+                activeThumbColor: AppColors.primary,
+                onChanged: (val) {
+                  ctrl.toggleRegionalCity(city.id, val);
+                },
+              ),
+            ),
+          );
+        }),
+      ],
+    );
+  }
+
+  Widget _buildSettingRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label, style: TextStyle(color: Colors.grey.shade600, fontSize: 13)),
+          Text(value, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
         ],
       ),
     );
@@ -644,7 +1209,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
       padding: const EdgeInsets.all(14.0),
       child: Text(
         title,
-        style: const TextStyle(fontWeight: FontWeight.w600, color: AppTheme.textMuted, fontSize: 13),
+        style: const TextStyle(fontWeight: FontWeight.w600, color: Color(0xFF64748B), fontSize: 13),
       ),
     );
   }
@@ -656,50 +1221,8 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
         text,
         style: TextStyle(
           fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
-          color: AppTheme.textDark,
+          color: Colors.black87,
           fontSize: 13,
-        ),
-      ),
-    );
-  }
-
-  Widget _statusBadge(OrderStatus status) {
-    Color bg;
-    Color fg;
-    switch (status) {
-      case OrderStatus.placed:
-        bg = AppTheme.statusPlaced.withAlpha(25);
-        fg = AppTheme.statusPlaced;
-        break;
-      case OrderStatus.preparing:
-        bg = AppTheme.statusPreparing.withAlpha(25);
-        fg = AppTheme.statusPreparing;
-        break;
-      case OrderStatus.outForDelivery:
-        bg = AppTheme.statusOutForDelivery.withAlpha(25);
-        fg = AppTheme.statusOutForDelivery;
-        break;
-      case OrderStatus.delivered:
-        bg = AppTheme.statusDelivered.withAlpha(25);
-        fg = AppTheme.statusDelivered;
-        break;
-      case OrderStatus.cancelled:
-        bg = AppTheme.statusCancelled.withAlpha(25);
-        fg = AppTheme.statusCancelled;
-        break;
-      default:
-        bg = Colors.grey.withAlpha(25);
-        fg = Colors.grey;
-    }
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-        decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(6)),
-        child: Text(
-          status.displayName,
-          style: TextStyle(color: fg, fontSize: 12, fontWeight: FontWeight.w600),
         ),
       ),
     );

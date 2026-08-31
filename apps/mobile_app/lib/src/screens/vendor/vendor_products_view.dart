@@ -42,9 +42,12 @@ class _VendorProductsViewState extends State<VendorProductsView> {
           backgroundColor: AppColors.backgroundLight,
           appBar: AppBar(
             backgroundColor: Colors.white,
-            foregroundColor: AppColors.primary,
             elevation: 0,
-            title: const Text('Product Inventory', style: TextStyle(fontWeight: FontWeight.bold)),
+            scrolledUnderElevation: 0,
+            title: const Text(
+              'Product Inventory',
+              style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary),
+            ),
             actions: [
               IconButton(
                 icon: const Icon(Icons.add_circle_outline, color: AppColors.primary),
@@ -58,7 +61,7 @@ class _VendorProductsViewState extends State<VendorProductsView> {
               // Search Bar
               Container(
                 color: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                 child: TextField(
                   decoration: InputDecoration(
                     hintText: 'Search items, ingredients...',
@@ -75,11 +78,11 @@ class _VendorProductsViewState extends State<VendorProductsView> {
                 ),
               ),
 
-              // Categories Chips
+              // Categories Chips Bar
               Container(
                 color: Colors.white,
-                height: 48,
-                padding: const EdgeInsets.symmetric(vertical: 6),
+                height: 52,
+                padding: const EdgeInsets.symmetric(vertical: 8),
                 child: ListView.separated(
                   scrollDirection: Axis.horizontal,
                   padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -92,10 +95,17 @@ class _VendorProductsViewState extends State<VendorProductsView> {
                       label: Text(cat),
                       selected: isSelected,
                       selectedColor: AppColors.primary,
+                      backgroundColor: AppColors.backgroundLight,
                       labelStyle: TextStyle(
                         color: isSelected ? Colors.white : AppColors.primary,
                         fontWeight: FontWeight.w600,
                         fontSize: 12,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                        side: BorderSide(
+                          color: isSelected ? AppColors.primary : const Color(0xFFE2E8F0),
+                        ),
                       ),
                       onSelected: (_) => setState(() => _selectedCategory = cat),
                     );
@@ -103,7 +113,7 @@ class _VendorProductsViewState extends State<VendorProductsView> {
                 ),
               ),
 
-              const Divider(height: 1),
+              const Divider(height: 1, color: Color(0xFFE2E8F0)),
 
               // Products List
               Expanded(
@@ -116,7 +126,7 @@ class _VendorProductsViewState extends State<VendorProductsView> {
                             const SizedBox(height: 12),
                             Text(
                               'No products found',
-                              style: TextStyle(color: Colors.grey.shade600, fontSize: 16),
+                              style: TextStyle(color: Colors.grey.shade600, fontSize: 16, fontWeight: FontWeight.w500),
                             ),
                           ],
                         ),
@@ -137,7 +147,7 @@ class _VendorProductsViewState extends State<VendorProductsView> {
             backgroundColor: AppColors.primary,
             foregroundColor: Colors.white,
             icon: const Icon(Icons.add),
-            label: const Text('Add Product'),
+            label: const Text('Add Product', style: TextStyle(fontWeight: FontWeight.bold)),
             onPressed: () => _showAddEditProductModal(context),
           ),
         );
@@ -152,7 +162,7 @@ class _VendorProductsViewState extends State<VendorProductsView> {
         borderRadius: BorderRadius.circular(16),
         side: BorderSide(
           color: product.isAvailable
-              ? AppColors.primary.withAlpha(20)
+              ? const Color(0xFFE2E8F0)
               : Colors.grey.shade300,
         ),
       ),
@@ -162,21 +172,22 @@ class _VendorProductsViewState extends State<VendorProductsView> {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Category Icon Avatar
+            // Category Icon Badge Area
             Container(
-              width: 50,
-              height: 50,
+              width: 52,
+              height: 52,
               decoration: BoxDecoration(
                 color: product.isAvailable
                     ? AppColors.softCyan.withAlpha(50)
                     : Colors.grey.shade300,
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(14),
               ),
               child: Icon(
                 Icons.restaurant_menu,
                 color: product.isAvailable
                     ? AppColors.primary
                     : Colors.grey.shade600,
+                size: 26,
               ),
             ),
             const SizedBox(width: 14),
@@ -186,19 +197,13 @@ class _VendorProductsViewState extends State<VendorProductsView> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          product.name,
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 15,
-                            color: product.isAvailable ? Colors.black87 : Colors.grey.shade600,
-                          ),
-                        ),
-                      ),
-                    ],
+                  Text(
+                    product.name,
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 15,
+                      color: product.isAvailable ? Colors.black87 : Colors.grey.shade600,
+                    ),
                   ),
                   const SizedBox(height: 4),
                   Text(
@@ -252,12 +257,13 @@ class _VendorProductsViewState extends State<VendorProductsView> {
               ),
             ),
 
-            // Availability Switch
+            // Stock Availability Switch
             Column(
               children: [
                 Switch(
                   value: product.isAvailable,
                   activeThumbColor: AppColors.primary,
+                  activeTrackColor: AppColors.softCyan,
                   onChanged: (_) {
                     VendorDemoController.instance.toggleProductAvailability(product.id);
                   },
@@ -282,8 +288,8 @@ class _VendorProductsViewState extends State<VendorProductsView> {
     final isEditing = product != null;
     final nameCtrl = TextEditingController(text: product?.name ?? '');
     final catCtrl = TextEditingController(text: product?.effectiveCategory ?? 'Karahi Special');
-    final priceCtrl = TextEditingController(text: product?.price.toStringAsFixed(0) ?? '');
-    final discPriceCtrl = TextEditingController(text: product?.discountPrice?.toStringAsFixed(0) ?? '');
+    final priceCtrl = TextEditingController(text: product != null ? product.price.toStringAsFixed(0) : '');
+    final discPriceCtrl = TextEditingController(text: product?.discountPrice != null ? product!.discountPrice!.toStringAsFixed(0) : '');
     final descCtrl = TextEditingController(text: product?.description ?? '');
 
     showModalBottomSheet<void>(

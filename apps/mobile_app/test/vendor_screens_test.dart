@@ -23,6 +23,13 @@ void main() {
 
   group('Vendor Experience UI Tests', () {
     testWidgets('VendorDashboardScreen renders KPIs, Quick Actions, and Status', (tester) async {
+      tester.view.physicalSize = const Size(800, 1600);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
       await tester.pumpWidget(buildTestableWidget(const VendorDashboardScreen()));
       await tester.pumpAndSettle();
 

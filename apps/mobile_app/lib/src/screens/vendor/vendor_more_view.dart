@@ -16,9 +16,12 @@ class VendorMoreView extends StatelessWidget {
           backgroundColor: AppColors.backgroundLight,
           appBar: AppBar(
             backgroundColor: Colors.white,
-            foregroundColor: AppColors.primary,
             elevation: 0,
-            title: const Text('Store Operations & Hub', style: TextStyle(fontWeight: FontWeight.bold)),
+            scrolledUnderElevation: 0,
+            title: const Text(
+              'Store Operations & Hub',
+              style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary),
+            ),
           ),
           body: ListView(
             padding: const EdgeInsets.all(16),
@@ -52,7 +55,7 @@ class VendorMoreView extends StatelessWidget {
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: AppColors.primary.withAlpha(20)),
+        side: const BorderSide(color: Color(0xFFE2E8F0)),
       ),
       color: Colors.white,
       child: Padding(
@@ -65,11 +68,11 @@ class VendorMoreView extends StatelessWidget {
               children: [
                 const Row(
                   children: [
-                    Icon(Icons.delivery_dining, color: AppColors.primary),
+                    Icon(Icons.two_wheeler_outlined, color: AppColors.primary),
                     SizedBox(width: 8),
                     Text(
                       'Delivery Rider Network',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.primary),
                     ),
                   ],
                 ),
@@ -90,12 +93,12 @@ class VendorMoreView extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 10),
             const Text(
               'Batkhela delivery riders connected to your store for prompt order fulfillment.',
               style: TextStyle(fontSize: 12, color: Colors.black54),
             ),
-            const Divider(height: 24),
+            const Divider(height: 24, color: Color(0xFFF1F5F9)),
 
             // Pending Applications
             if (pendingRiders.isNotEmpty) ...[
@@ -103,7 +106,7 @@ class VendorMoreView extends StatelessWidget {
                 children: [
                   const Text(
                     'Pending Rider Requests',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppColors.coral),
                   ),
                   const SizedBox(width: 6),
                   CircleAvatar(
@@ -173,6 +176,7 @@ class VendorMoreView extends StatelessWidget {
                   foregroundColor: AppColors.error,
                   side: const BorderSide(color: AppColors.error),
                   visualDensity: VisualDensity.compact,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                 ),
                 onPressed: () {
                   VendorDemoController.instance.rejectRider(rider.id);
@@ -188,6 +192,8 @@ class VendorMoreView extends StatelessWidget {
                   backgroundColor: AppColors.primary,
                   foregroundColor: Colors.white,
                   visualDensity: VisualDensity.compact,
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                 ),
                 onPressed: () {
                   VendorDemoController.instance.approveRider(rider.id);
@@ -223,7 +229,7 @@ class VendorMoreView extends StatelessWidget {
           ),
           Row(
             children: [
-              const Icon(Icons.star, size: 14, color: AppColors.warning),
+              const Icon(Icons.star_rounded, size: 16, color: AppColors.warning),
               const SizedBox(width: 2),
               Text(
                 '${rider.rating}',
@@ -241,7 +247,7 @@ class VendorMoreView extends StatelessWidget {
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: AppColors.primary.withAlpha(20)),
+        side: const BorderSide(color: Color(0xFFE2E8F0)),
       ),
       color: Colors.white,
       child: Padding(
@@ -255,7 +261,7 @@ class VendorMoreView extends StatelessWidget {
                 SizedBox(width: 8),
                 Text(
                   'Sales & Operational Insights',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.primary),
                 ),
               ],
             ),
@@ -266,7 +272,7 @@ class VendorMoreView extends StatelessWidget {
                   child: Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: AppColors.primary.withAlpha(15),
+                      color: AppColors.softCyan.withAlpha(45),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Column(
@@ -303,7 +309,7 @@ class VendorMoreView extends StatelessWidget {
                 ),
               ],
             ),
-            const Divider(height: 24),
+            const Divider(height: 24, color: Color(0xFFF1F5F9)),
             const Text(
               'Top Selling Items Today',
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
@@ -338,7 +344,7 @@ class VendorMoreView extends StatelessWidget {
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: AppColors.primary.withAlpha(20)),
+        side: const BorderSide(color: Color(0xFFE2E8F0)),
       ),
       color: Colors.white,
       child: Column(
@@ -354,7 +360,7 @@ class VendorMoreView extends StatelessWidget {
               );
             },
           ),
-          const Divider(height: 1),
+          const Divider(height: 1, color: Color(0xFFF1F5F9)),
           ListTile(
             leading: const Icon(Icons.language, color: AppColors.primary),
             title: const Text('Language / زبان', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),

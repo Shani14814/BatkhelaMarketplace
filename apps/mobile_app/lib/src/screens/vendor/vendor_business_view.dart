@@ -16,9 +16,12 @@ class VendorBusinessView extends StatelessWidget {
           backgroundColor: AppColors.backgroundLight,
           appBar: AppBar(
             backgroundColor: Colors.white,
-            foregroundColor: AppColors.primary,
             elevation: 0,
-            title: const Text('Store Profile & Settings', style: TextStyle(fontWeight: FontWeight.bold)),
+            scrolledUnderElevation: 0,
+            title: const Text(
+              'Store Profile & Settings',
+              style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary),
+            ),
             actions: [
               IconButton(
                 icon: const Icon(Icons.edit_outlined, color: AppColors.primary),
@@ -35,7 +38,7 @@ class VendorBusinessView extends StatelessWidget {
                 elevation: 0,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
-                  side: BorderSide(color: AppColors.primary.withAlpha(20)),
+                  side: const BorderSide(color: Color(0xFFE2E8F0)),
                 ),
                 color: Colors.white,
                 child: Padding(
@@ -61,7 +64,7 @@ class VendorBusinessView extends StatelessWidget {
                               children: [
                                 Text(
                                   store.name,
-                                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppColors.textPrimary),
                                 ),
                                 const SizedBox(height: 2),
                                 Text(
@@ -71,11 +74,11 @@ class VendorBusinessView extends StatelessWidget {
                                 const SizedBox(height: 4),
                                 Row(
                                   children: [
-                                    const Icon(Icons.star, size: 16, color: AppColors.warning),
+                                    const Icon(Icons.star_rounded, size: 18, color: AppColors.warning),
                                     const SizedBox(width: 4),
                                     Text(
-                                      '${store.rating} (${store.reviewCount} reviews)',
-                                      style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12),
+                                      '${store.rating} (${store.reviewCount} customer reviews)',
+                                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
                                     ),
                                   ],
                                 ),
@@ -84,14 +87,14 @@ class VendorBusinessView extends StatelessWidget {
                           ),
                         ],
                       ),
-                      const Divider(height: 24),
+                      const Divider(height: 24, color: Color(0xFFF1F5F9)),
 
                       // Store Status Switch Tile
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                         decoration: BoxDecoration(
                           color: store.isOpen
-                              ? AppColors.primary.withAlpha(15)
+                              ? AppColors.softCyan.withAlpha(45)
                               : AppColors.error.withAlpha(15),
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
@@ -131,6 +134,7 @@ class VendorBusinessView extends StatelessWidget {
                             Switch(
                               value: store.isOpen,
                               activeThumbColor: AppColors.primary,
+                              activeTrackColor: AppColors.softCyan,
                               onChanged: (val) {
                                 VendorDemoController.instance.toggleStoreOpenStatus(val);
                               },
@@ -149,7 +153,7 @@ class VendorBusinessView extends StatelessWidget {
                 elevation: 0,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
-                  side: BorderSide(color: AppColors.primary.withAlpha(20)),
+                  side: const BorderSide(color: Color(0xFFE2E8F0)),
                 ),
                 color: Colors.white,
                 child: Padding(
@@ -159,7 +163,7 @@ class VendorBusinessView extends StatelessWidget {
                     children: [
                       const Text(
                         'Operational Information',
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.primary),
                       ),
                       const SizedBox(height: 16),
                       _buildInfoTile(
@@ -167,13 +171,13 @@ class VendorBusinessView extends StatelessWidget {
                         label: 'Merchant Phone',
                         value: store.phone,
                       ),
-                      const Divider(height: 20),
+                      const Divider(height: 20, color: Color(0xFFF1F5F9)),
                       _buildInfoTile(
                         icon: Icons.location_on_outlined,
                         label: 'Store Location',
                         value: store.address,
                       ),
-                      const Divider(height: 20),
+                      const Divider(height: 20, color: Color(0xFFF1F5F9)),
                       _buildInfoTile(
                         icon: Icons.access_time_outlined,
                         label: 'Operating Hours',
@@ -203,7 +207,7 @@ class VendorBusinessView extends StatelessWidget {
                           color: AppColors.indigo.withAlpha(20),
                           shape: BoxShape.circle,
                         ),
-                        child: const Icon(Icons.verified, color: AppColors.indigo),
+                        child: const Icon(Icons.verified, color: AppColors.indigo, size: 24),
                       ),
                       const SizedBox(width: 14),
                       const Expanded(
@@ -212,7 +216,7 @@ class VendorBusinessView extends StatelessWidget {
                           children: [
                             Text(
                               'Verified Batkhela Merchant',
-                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: AppColors.indigo),
                             ),
                             SizedBox(height: 2),
                             Text(

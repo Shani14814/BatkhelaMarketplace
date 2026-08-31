@@ -23,3 +23,14 @@ export 'src/models/delivery.dart';
 
 // Services
 export 'src/services/supabase_service.dart';
+
+// Shared UI Components (Google Stitch System)
+export 'src/components/marketplace_hero_banner.dart';
+export 'src/components/marketplace_category_chip.dart';
+export 'src/components/vendor_store_card.dart';
+export 'src/components/product_catalog_card.dart';
+export 'src/components/marketplace_status_badge.dart';
+export 'src/components/marketplace_bottom_nav.dart';
+export 'src/components/kpi_card.dart';
+export 'src/components/vendor_quick_action_button.dart';
+

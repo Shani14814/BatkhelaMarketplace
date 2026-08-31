@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:marketplace_core/marketplace_core.dart';
 
 void main() {
+  setUpAll(() {
+    GoogleFonts.config.allowRuntimeFetching = false;
+  });
+
   group('Marketplace Core Models Test', () {
     test('UserProfile JSON serialization and deserialization', () {
       final user = UserProfile(

@@ -4,7 +4,7 @@ import 'app_typography.dart';
 import 'app_radius.dart';
 import 'app_spacing.dart';
 
-/// Centralized Soft, Premium, Modern Theme Configuration
+/// Centralized Google Stitch Theme Configuration for Batkhela Marketplace
 class AppTheme {
   // Aliases for backwards compatibility
   static const Color primaryGreen = AppColors.primary;
@@ -24,7 +24,7 @@ class AppTheme {
   static const Color statusDelivered = AppColors.success;
   static const Color statusCancelled = AppColors.error;
 
-  /// Premium Soft Light Theme
+  /// Google Stitch Light Theme (Soft Lilac base, Deep Teal primary, Indigo accent)
   static ThemeData get lightTheme {
     return ThemeData(
       useMaterial3: true,
@@ -33,6 +33,7 @@ class AppTheme {
         seedColor: AppColors.primary,
         primary: AppColors.primary,
         secondary: AppColors.secondary,
+        tertiary: AppColors.coral,
         surface: AppColors.surfaceLight,
         error: AppColors.error,
         brightness: Brightness.light,
@@ -65,6 +66,20 @@ class AppTheme {
           ),
           textStyle: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
         ),
+      ),
+      chipTheme: const ChipThemeData(
+        backgroundColor: AppColors.surfaceLight,
+        selectedColor: AppColors.primaryLight,
+        side: BorderSide(color: AppColors.borderLight),
+        shape: RoundedRectangleBorder(borderRadius: AppRadius.roundedFull),
+        labelStyle: TextStyle(color: AppColors.textPrimary, fontSize: 13, fontWeight: FontWeight.w500),
+      ),
+      bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+        backgroundColor: AppColors.surfaceLight,
+        selectedItemColor: AppColors.primary,
+        unselectedItemColor: AppColors.textTertiary,
+        type: BottomNavigationBarType.fixed,
+        elevation: 8,
       ),
       inputDecorationTheme: const InputDecorationTheme(
         filled: true,

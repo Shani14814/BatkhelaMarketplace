@@ -126,7 +126,7 @@ class RiderDemoController extends ChangeNotifier {
     licenseNumber: 'BK-M-2024-88',
     cnic: '15402-1234567-1',
     rating: 4.9,
-    completedDeliveriesCount: 280,
+    completedDeliveriesCount: 284,
     isVerified: true,
   );
 
@@ -137,7 +137,7 @@ class RiderDemoController extends ChangeNotifier {
 
   // Delivery assignments list
   final List<RiderDeliveryAssignment> assignments = [
-    // 1. Active Delivery
+    // 1. Active In-Progress Delivery
     RiderDeliveryAssignment(
       id: 'DEL-1042',
       orderId: 'ORD-501',
@@ -146,7 +146,7 @@ class RiderDemoController extends ChangeNotifier {
       pickupAddress: 'Main GT Road, Near Bypass Chowk, Batkhela',
       customerArea: 'Main Bazaar Road',
       customerAddress: 'Main Bazaar Road, Near GPO, Batkhela',
-      customerNotes: 'Please call before arriving, shop 2nd floor.',
+      customerNotes: 'Please call upon reaching near GPO, shop 2nd floor.',
       itemNames: [
         'Shinwari Mutton Karahi (Full KG)',
         '4x Kandahari Roghani Naan',
@@ -160,7 +160,7 @@ class RiderDemoController extends ChangeNotifier {
       createdAt: DateTime.now().subtract(const Duration(minutes: 15)),
     ),
 
-    // 2. New Assignment Offer
+    // 2. New Assignment Offer 1
     RiderDeliveryAssignment(
       id: 'DEL-1043',
       orderId: 'ORD-502',
@@ -183,7 +183,30 @@ class RiderDemoController extends ChangeNotifier {
       createdAt: DateTime.now().subtract(const Duration(minutes: 3)),
     ),
 
-    // 3. Completed Delivery
+    // 3. New Assignment Offer 2
+    RiderDeliveryAssignment(
+      id: 'DEL-1046',
+      orderId: 'ORD-507',
+      orderNumber: 1046,
+      storeName: 'Batkhela BBQ House & Biryani',
+      pickupAddress: 'Main Bazaar Road, Near Clock Tower, Batkhela',
+      customerArea: 'Zafar Park Road',
+      customerAddress: 'Zafar Park Road, Opp. Park Gate, Batkhela',
+      customerNotes: 'Please carry change for 1000 note.',
+      itemNames: [
+        'Chicken Malai Boti Plate (8 Pcs)',
+        'Special Malakand Chicken Biryani (Double)',
+      ],
+      cashToCollect: 1110.0,
+      deliveryFeeEarnings: 110.0,
+      tipEarnings: 30.0,
+      distanceKm: 2.1,
+      estimatedMinutes: 7,
+      stage: DeliveryStage.offered,
+      createdAt: DateTime.now().subtract(const Duration(minutes: 1)),
+    ),
+
+    // 4. Completed Trip 1
     RiderDeliveryAssignment(
       id: 'DEL-1038',
       orderId: 'ORD-504',
@@ -194,9 +217,9 @@ class RiderDemoController extends ChangeNotifier {
       customerAddress: 'Zafar Park Road, Batkhela',
       itemNames: [
         'Panadol Extra Tablets (Box of 20)',
-        'Surgical Face Masks (Pack of 50)',
+        'First Aid Emergency Care Kit',
       ],
-      cashToCollect: 650.0,
+      cashToCollect: 910.0,
       deliveryFeeEarnings: 100.0,
       tipEarnings: 30.0,
       distanceKm: 3.1,
@@ -205,7 +228,7 @@ class RiderDemoController extends ChangeNotifier {
       createdAt: DateTime.now().subtract(const Duration(hours: 1, minutes: 20)),
     ),
 
-    // 4. Completed Delivery
+    // 5. Completed Trip 2
     RiderDeliveryAssignment(
       id: 'DEL-1035',
       orderId: 'ORD-505',
@@ -215,16 +238,38 @@ class RiderDemoController extends ChangeNotifier {
       customerArea: 'Degree College Road',
       customerAddress: 'Degree College Road, Batkhela',
       itemNames: [
-        'Special Malakand Gulab Jamun (1 KG)',
-        'Pistachio Barfi (500g)',
+        'Fresh Batkhela Gulab Jamun (1 KG Box)',
+        'Traditional Khoya Peda & Barfi Mix (1 KG)',
       ],
-      cashToCollect: 1930.0,
+      cashToCollect: 1600.0,
       deliveryFeeEarnings: 130.0,
       tipEarnings: 40.0,
       distanceKm: 2.7,
       estimatedMinutes: 9,
       stage: DeliveryStage.delivered,
       createdAt: DateTime.now().subtract(const Duration(hours: 2, minutes: 45)),
+    ),
+
+    // 6. Completed Trip 3
+    RiderDeliveryAssignment(
+      id: 'DEL-1031',
+      orderId: 'ORD-499',
+      orderNumber: 1031,
+      storeName: 'Fresh Sabzi & Fruits Mandi Batkhela',
+      pickupAddress: 'Sabzi Mandi Road, Batkhela',
+      customerArea: 'Civil Hospital Colony',
+      customerAddress: 'Civil Hospital Colony, Batkhela',
+      itemNames: [
+        'Crisp Swat Red Apples (1 KG)',
+        'Fresh Batkhela Farm Tomatoes (2 KG Basket)',
+      ],
+      cashToCollect: 420.0,
+      deliveryFeeEarnings: 100.0,
+      tipEarnings: 20.0,
+      distanceKm: 1.6,
+      estimatedMinutes: 5,
+      stage: DeliveryStage.delivered,
+      createdAt: DateTime.now().subtract(const Duration(hours: 4, minutes: 10)),
     ),
   ];
 

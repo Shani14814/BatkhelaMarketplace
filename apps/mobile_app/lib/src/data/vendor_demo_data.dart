@@ -89,6 +89,7 @@ class VendorDemoController extends ChangeNotifier {
 
   // Live Orders
   final List<MarketplaceOrder> orders = [
+    // 1. Placed / Urgent Pending
     MarketplaceOrder(
       id: 'ORD-501',
       orderNumber: 1042,
@@ -113,6 +114,42 @@ class VendorDemoController extends ChangeNotifier {
         ),
       ],
     ),
+
+    // 2. Placed / Pending
+    MarketplaceOrder(
+      id: 'ORD-506',
+      orderNumber: 1045,
+      customerId: 'CUST-06',
+      vendorId: 'store-1',
+      subtotal: 1100.0,
+      deliveryFee: 60.0,
+      platformFee: 20.0,
+      totalAmount: 1180.0,
+      status: OrderStatus.placed,
+      deliveryAddress: 'Thana Road, Near Bridge, Batkhela',
+      customerNotes: 'Please deliver hot with fresh lemon and ginger garnish.',
+      createdAt: DateTime.now().subtract(const Duration(minutes: 8)),
+      items: const [
+        OrderItem(
+          id: 'it-10',
+          orderId: 'ORD-506',
+          productName: 'Special Chicken White Karahi (Half KG)',
+          unitPrice: 990.0,
+          quantity: 1,
+          totalPrice: 990.0,
+        ),
+        OrderItem(
+          id: 'it-11',
+          orderId: 'ORD-506',
+          productName: 'Kandahari Roghani Naan',
+          unitPrice: 40.0,
+          quantity: 2,
+          totalPrice: 80.0,
+        ),
+      ],
+    ),
+
+    // 3. Accepted
     MarketplaceOrder(
       id: 'ORD-502',
       orderNumber: 1043,
@@ -145,6 +182,8 @@ class VendorDemoController extends ChangeNotifier {
         ),
       ],
     ),
+
+    // 4. In Kitchen / Preparing
     MarketplaceOrder(
       id: 'ORD-503',
       orderNumber: 1040,
@@ -168,6 +207,8 @@ class VendorDemoController extends ChangeNotifier {
         ),
       ],
     ),
+
+    // 5. Ready for Pickup
     MarketplaceOrder(
       id: 'ORD-504',
       orderNumber: 1038,
@@ -191,6 +232,8 @@ class VendorDemoController extends ChangeNotifier {
         ),
       ],
     ),
+
+    // 6. Delivered
     MarketplaceOrder(
       id: 'ORD-505',
       orderNumber: 1035,
@@ -256,7 +299,7 @@ class VendorDemoController extends ChangeNotifier {
     }
   }
 
-  // Product Catalog
+  // Complete Rich Product Catalog for Vendor
   final List<Product> products = [
     Product(
       id: 'prod-1',
@@ -307,12 +350,47 @@ class VendorDemoController extends ChangeNotifier {
     Product(
       id: 'prod-5',
       vendorId: 'store-1',
+      name: 'Special Chicken White Karahi (Half KG)',
+      description: 'Mild black pepper yogurt chicken karahi prepared with fresh cream',
+      price: 1100.0,
+      discountPrice: 990.0,
+      category: 'Karahi Special',
+      isAvailable: true,
+      stockQuantity: 30,
+      createdAt: DateTime(2026, 1, 1),
+    ),
+    Product(
+      id: 'prod-6',
+      vendorId: 'store-1',
+      name: 'Chicken Malai Boti Skewer (6 Pcs)',
+      description: 'Boneless tender chicken breast cubes marinated in cream and green herbs',
+      price: 520.0,
+      discountPrice: 480.0,
+      category: 'Kababs & BBQ',
+      isAvailable: true,
+      stockQuantity: 45,
+      createdAt: DateTime(2026, 1, 1),
+    ),
+    Product(
+      id: 'prod-7',
+      vendorId: 'store-1',
+      name: 'Garlic Butter Naan',
+      description: 'Fresh tandoori naan coated in minced garlic, parsley and desi butter',
+      price: 60.0,
+      category: 'Tandoor',
+      isAvailable: true,
+      stockQuantity: 80,
+      createdAt: DateTime(2026, 1, 1),
+    ),
+    Product(
+      id: 'prod-8',
+      vendorId: 'store-1',
       name: 'Special Malakand Raita & Salad Bowl',
       description: 'Chilled mint zeera yogurt with fresh cucumber and onion salad',
       price: 100.0,
-      category: 'Sides',
-      isAvailable: false,
-      stockQuantity: 0,
+      category: 'Sides & Drinks',
+      isAvailable: true,
+      stockQuantity: 50,
       createdAt: DateTime(2026, 1, 1),
     ),
   ];
@@ -391,13 +469,13 @@ class VendorDemoController extends ChangeNotifier {
     }
   }
 
-  // Rider Applications
+  // Rider Applications Network
   final List<DemoRiderApplication> riderApplications = [
     DemoRiderApplication(
       id: 'rider-01',
       name: 'Kamran Khan',
       phone: '+92 344 1122334',
-      vehicleType: 'Honda 125cc Motorbike',
+      vehicleType: 'Honda CG 125cc (Red)',
       cnic: '15402-1234567-1',
       rating: 4.9,
       completedDeliveries: 280,
@@ -421,6 +499,16 @@ class VendorDemoController extends ChangeNotifier {
       cnic: '15402-5544332-9',
       rating: 4.7,
       completedDeliveries: 34,
+      status: RiderApplicationStatus.pending,
+    ),
+    DemoRiderApplication(
+      id: 'rider-04',
+      name: 'Bilal Khan Batkhela',
+      phone: '+92 312 4433221',
+      vehicleType: 'Honda CD 70cc',
+      cnic: '15402-8877665-5',
+      rating: 4.9,
+      completedDeliveries: 62,
       status: RiderApplicationStatus.pending,
     ),
   ];

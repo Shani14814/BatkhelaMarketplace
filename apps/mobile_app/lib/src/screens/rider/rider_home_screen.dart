@@ -118,12 +118,16 @@ class _RiderHomeScreenState extends State<RiderHomeScreen> {
                         ),
                       ),
                       const SizedBox(width: 6),
-                      Text(
-                        ctrl.isOnline ? 'ONLINE • Broadcasting Telemetry' : 'OFFLINE • Paused',
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: ctrl.isOnline ? AppColors.primary : AppColors.error,
-                          fontWeight: FontWeight.bold,
+                      Flexible(
+                        child: Text(
+                          ctrl.isOnline ? 'ONLINE • Radar Active' : 'OFFLINE • Paused',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: ctrl.isOnline ? AppColors.primary : AppColors.error,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                     ],

@@ -222,17 +222,38 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
                 ),
                 const SizedBox(height: AppSpacing.lg),
 
-                // Promotional Hero Banner
-                MarketplaceHeroBanner(
-                  title: 'Batkhela Local Express',
-                  subtitle: 'Free delivery on your first 3 orders across Batkhela & Thana bazaar',
-                  tag: 'SPECIAL PROMO',
-                  ctaLabel: 'Explore Stores',
-                  onCtaTap: () {
-                    setState(() {
-                      _currentNavIndex = 1; // Explore tab
-                    });
-                  },
+                // Promotional Hero Banner Carousel (4 Batkhela Campaigns)
+                SizedBox(
+                  height: 175,
+                  child: PageView.builder(
+                    itemCount: CustomerDemoData.promoBanners.length,
+                    itemBuilder: (context, index) {
+                      final banner = CustomerDemoData.promoBanners[index];
+                      return Padding(
+                        padding: const EdgeInsets.only(right: 6),
+                        child: MarketplaceHeroBanner(
+                          title: banner.title,
+                          subtitle: banner.subtitle,
+                          tag: banner.tag,
+                          ctaLabel: banner.ctaLabel,
+                          gradient: LinearGradient(
+                            colors: [
+                              banner.primaryColor,
+                              banner.primaryColor.withAlpha(210),
+                              AppColors.indigo,
+                            ],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          onCtaTap: () {
+                            setState(() {
+                              _currentNavIndex = 1; // Explore tab
+                            });
+                          },
+                        ),
+                      );
+                    },
+                  ),
                 ),
                 const SizedBox(height: AppSpacing.lg),
 
@@ -323,7 +344,7 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
 
                 // Featured Products Section Header
                 Text(
-                  'Recommended For You',
+                  'Recommended For You in Batkhela',
                   style: AppTypography.headline(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -331,8 +352,8 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
                 ),
                 const SizedBox(height: AppSpacing.sm),
 
-                // Featured Products List
-                ...CustomerDemoData.allFeaturedProducts.take(4).map((product) {
+                // Featured Products List (Top 8 items)
+                ...CustomerDemoData.allFeaturedProducts.take(8).map((product) {
                   return Padding(
                     padding: const EdgeInsets.only(bottom: AppSpacing.md),
                     child: ProductCatalogCard(

@@ -23,12 +23,19 @@ void main() {
 
   group('Rider Experience UI Tests', () {
     testWidgets('RiderHomeScreen renders telemetry, KPIs, active delivery, and online switch', (tester) async {
+      tester.view.physicalSize = const Size(1200, 3600);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
       await tester.pumpWidget(buildTestableWidget(const RiderHomeScreen()));
       await tester.pumpAndSettle();
 
       // Title & GPS Telemetry
       expect(find.text('Rider Delivery Radar'), findsOneWidget);
-      expect(find.text('Batkhela GPS Node Broadcasting'), findsOneWidget);
+      expect(find.text('Broadcasting Location in Batkhela'), findsOneWidget);
 
       // KPI Metrics
       expect(find.text("Today's Earnings"), findsOneWidget);
@@ -36,14 +43,14 @@ void main() {
 
       // Active Delivery
       expect(find.text('Current Assigned Delivery'), findsOneWidget);
-      expect(find.text('Delivery #1042'), findsOneWidget);
+      expect(find.text('Trip #DEL-1042'), findsOneWidget);
 
       // Online / Offline Switch toggle
       final switchFinder = find.byType(Switch).first;
       await tester.tap(switchFinder);
       await tester.pumpAndSettle();
       expect(RiderDemoController.instance.isOnline, false);
-      expect(find.text('GPS Broadcasting Paused'), findsOneWidget);
+      expect(find.text('Telemetry Paused'), findsOneWidget);
 
       // Re-enable
       await tester.tap(switchFinder);

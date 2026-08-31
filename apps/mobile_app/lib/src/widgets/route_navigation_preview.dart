@@ -31,7 +31,7 @@ class RouteNavigationPreview extends StatelessWidget {
         boxShadow: [
           BoxShadow(
             color: AppColors.primary.withAlpha(10),
-            blurRadius: 10,
+            blurRadius: 12,
             offset: const Offset(0, 4),
           ),
         ],
@@ -39,55 +39,113 @@ class RouteNavigationPreview extends StatelessWidget {
       clipBehavior: Clip.antiAlias,
       child: Column(
         children: [
-          // Map Graphic Canvas Representation
+          // Enhanced Stylized Batkhela Map Canvas
           Container(
-            height: 140,
+            height: 180,
             width: double.infinity,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  AppColors.primaryLight,
-                  AppColors.softCyan.withAlpha(80),
-                ],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
+            decoration: const BoxDecoration(
+              color: Color(0xFFE8F1F2),
             ),
             child: Stack(
               children: [
-                // Stylized Road Grid Overlay
+                // Stylized Multi-Road Network & Terrain Canvas
                 CustomPaint(
-                  size: const Size(double.infinity, 140),
-                  painter: _MapRoadsPainter(),
+                  size: const Size(double.infinity, 180),
+                  painter: _BatkhelaMapPainter(),
                 ),
 
-                // Distance & ETA Floating Badge
+                // Live Navigation Instruction Floating Bar
                 Positioned(
-                  top: 12,
+                  top: 10,
+                  left: 12,
                   right: 12,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                     decoration: BoxDecoration(
-                      color: AppColors.primaryDark,
-                      borderRadius: BorderRadius.circular(20),
+                      color: AppColors.primaryDark.withAlpha(240),
+                      borderRadius: BorderRadius.circular(12),
                       boxShadow: const [
                         BoxShadow(
                           color: Colors.black26,
-                          blurRadius: 6,
-                          offset: Offset(0, 2),
+                          blurRadius: 8,
+                          offset: Offset(0, 3),
                         ),
                       ],
                     ),
                     child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(6),
+                          decoration: BoxDecoration(
+                            color: AppColors.softCyan.withAlpha(40),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Icon(Icons.turn_right_rounded, color: AppColors.softCyan, size: 18),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'Turn Right in 250m onto Main GT Road',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              Text(
+                                'Fastest route via Clock Tower Chowk • Low traffic',
+                                style: TextStyle(
+                                  color: Colors.white.withAlpha(200),
+                                  fontSize: 10,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: AppColors.coral,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            '$estimatedMinutes min',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
+                // Distance & Live GPS Telemetry Floating Badge
+                Positioned(
+                  bottom: 10,
+                  left: 12,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withAlpha(235),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: AppColors.primary.withAlpha(30)),
+                    ),
+                    child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(Icons.directions_bike, size: 14, color: AppColors.softCyan),
-                        const SizedBox(width: 6),
+                        const Icon(Icons.satellite_alt_rounded, size: 12, color: AppColors.primary),
+                        const SizedBox(width: 5),
                         Text(
-                          '${distanceKm.toStringAsFixed(1)} km • $estimatedMinutes mins',
+                          '${distanceKm.toStringAsFixed(1)} KM • GPS 34.6186° N',
                           style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 11,
+                            color: AppColors.primaryDark,
+                            fontSize: 10,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -96,25 +154,26 @@ class RouteNavigationPreview extends StatelessWidget {
                   ),
                 ),
 
-                // GPS Telemetry Indicator
+                // Batkhela Bazaar Active Node Badge
                 Positioned(
-                  bottom: 12,
-                  left: 12,
+                  bottom: 10,
+                  right: 12,
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
-                      color: Colors.white.withAlpha(220),
+                      color: Colors.white.withAlpha(235),
                       borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: AppColors.primary.withAlpha(30)),
                     ),
                     child: const Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.satellite_alt, size: 12, color: AppColors.primary),
+                        Icon(Icons.navigation_rounded, size: 12, color: AppColors.coral),
                         SizedBox(width: 4),
                         Text(
-                          'Batkhela Route Node Active',
+                          'Batkhela Central Node',
                           style: TextStyle(
-                            color: AppColors.primaryDark,
+                            color: AppColors.textPrimary,
                             fontSize: 10,
                             fontWeight: FontWeight.bold,
                           ),
@@ -219,44 +278,179 @@ class RouteNavigationPreview extends StatelessWidget {
   }
 }
 
-class _MapRoadsPainter extends CustomPainter {
+/// Custom Vector Painter generating a rich Batkhela Road Topology with terrain and route nodes
+class _BatkhelaMapPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
-    final roadPaint = Paint()
-      ..color = Colors.white.withAlpha(160)
-      ..strokeWidth = 6.0
-      ..style = PaintingStyle.stroke;
+    // 1. Terrain & Urban Blocks
+    final blockPaint = Paint()
+      ..color = const Color(0xFFDCEAE9)
+      ..style = PaintingStyle.fill;
 
-    final routePaint = Paint()
-      ..color = AppColors.primary
-      ..strokeWidth = 4.0
+    // Block 1 (North-West)
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromLTWH(15, 30, size.width * 0.28, size.height * 0.35),
+        const Radius.circular(8),
+      ),
+      blockPaint,
+    );
+
+    // Block 2 (North-East)
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromLTWH(size.width * 0.55, 20, size.width * 0.38, size.height * 0.3),
+        const Radius.circular(8),
+      ),
+      blockPaint,
+    );
+
+    // Block 3 (South-Central)
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromLTWH(size.width * 0.32, size.height * 0.58, size.width * 0.3, size.height * 0.35),
+        const Radius.circular(8),
+      ),
+      blockPaint,
+    );
+
+    // 2. Swat River Ribbon (South curved blue vector)
+    final riverPaint = Paint()
+      ..color = const Color(0xFFBFDBFE).withAlpha(150)
+      ..strokeWidth = 14.0
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round;
 
-    final path = Path();
-    path.moveTo(20, size.height * 0.7);
-    path.cubicTo(
-      size.width * 0.3,
-      size.height * 0.8,
+    final riverPath = Path();
+    riverPath.moveTo(0, size.height * 0.95);
+    riverPath.quadraticBezierTo(
       size.width * 0.5,
-      size.height * 0.2,
-      size.width * 0.85,
-      size.height * 0.35,
+      size.height * 0.82,
+      size.width,
+      size.height * 0.98,
+    );
+    canvas.drawPath(riverPath, riverPaint);
+
+    // 3. Arterial Roads Network
+    final secondaryRoadPaint = Paint()
+      ..color = Colors.white
+      ..strokeWidth = 9.0
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round;
+
+    // Secondary Cross Street (Hospital Road)
+    final crossRoad = Path();
+    crossRoad.moveTo(size.width * 0.25, 0);
+    crossRoad.lineTo(size.width * 0.25, size.height);
+    canvas.drawPath(crossRoad, secondaryRoadPaint);
+
+    // Secondary Street (College Road Link)
+    final collegeRoad = Path();
+    collegeRoad.moveTo(size.width * 0.75, 0);
+    collegeRoad.lineTo(size.width * 0.75, size.height);
+    canvas.drawPath(collegeRoad, secondaryRoadPaint);
+
+    // Secondary Connector (Thana Link)
+    final thanaRoad = Path();
+    thanaRoad.moveTo(0, size.height * 0.45);
+    thanaRoad.lineTo(size.width, size.height * 0.45);
+    canvas.drawPath(thanaRoad, secondaryRoadPaint);
+
+    // 4. Main Arterial Highway (Main GT Road)
+    final mainRoadPaint = Paint()
+      ..color = Colors.white
+      ..strokeWidth = 14.0
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round;
+
+    final mainRoadPath = Path();
+    mainRoadPath.moveTo(25, size.height * 0.82);
+    mainRoadPath.cubicTo(
+      size.width * 0.32,
+      size.height * 0.86,
+      size.width * 0.52,
+      size.height * 0.32,
+      size.width * 0.88,
+      size.height * 0.42,
+    );
+    canvas.drawPath(mainRoadPath, mainRoadPaint);
+
+    // Road Centerline dashes
+    final dashPaint = Paint()
+      ..color = const Color(0xFFCBD5E1)
+      ..strokeWidth = 2.0
+      ..style = PaintingStyle.stroke;
+
+    canvas.drawPath(mainRoadPath, dashPaint);
+
+    // 5. Active Dynamic Delivery Route (Teal polyline with shadow glow)
+    final routeGlowPaint = Paint()
+      ..color = AppColors.primary.withAlpha(60)
+      ..strokeWidth = 10.0
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round;
+
+    final activeRoutePaint = Paint()
+      ..color = AppColors.primary
+      ..strokeWidth = 5.0
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round;
+
+    final activeRoutePath = Path();
+    activeRoutePath.moveTo(28, size.height * 0.82);
+    activeRoutePath.cubicTo(
+      size.width * 0.32,
+      size.height * 0.86,
+      size.width * 0.52,
+      size.height * 0.32,
+      size.width * 0.88,
+      size.height * 0.42,
     );
 
-    // Draw background road
-    canvas.drawPath(path, roadPaint);
+    canvas.drawPath(activeRoutePath, routeGlowPaint);
+    canvas.drawPath(activeRoutePath, activeRoutePaint);
 
-    // Draw active bike route path
-    canvas.drawPath(path, routePaint);
+    // 6. Waypoint Markers
+    // Start / Store Pickup Marker (Teal with white center)
+    final pickupOffset = Offset(28, size.height * 0.82);
+    canvas.drawCircle(pickupOffset, 9, Paint()..color = Colors.white);
+    canvas.drawCircle(pickupOffset, 7, Paint()..color = AppColors.primary);
+    canvas.drawCircle(pickupOffset, 3, Paint()..color = Colors.white);
 
-    // Draw Start Marker
-    final startPaint = Paint()..color = AppColors.primary;
-    canvas.drawCircle(Offset(20, size.height * 0.7), 6, startPaint);
+    // Destination / Customer Drop-off Marker (Coral with halo)
+    final dropoffOffset = Offset(size.width * 0.88, size.height * 0.42);
+    canvas.drawCircle(dropoffOffset, 12, Paint()..color = AppColors.coral.withAlpha(50));
+    canvas.drawCircle(dropoffOffset, 9, Paint()..color = Colors.white);
+    canvas.drawCircle(dropoffOffset, 7, Paint()..color = AppColors.coral);
+    canvas.drawCircle(dropoffOffset, 3, Paint()..color = Colors.white);
 
-    // Draw End Marker
-    final endPaint = Paint()..color = AppColors.coral;
-    canvas.drawCircle(Offset(size.width * 0.85, size.height * 0.35), 6, endPaint);
+    // 7. Live Pulsating Rider Position Marker (Along route)
+    final riderOffset = Offset(size.width * 0.46, size.height * 0.60);
+    // Outer pulse ring
+    canvas.drawCircle(riderOffset, 14, Paint()..color = AppColors.softCyan.withAlpha(90));
+    canvas.drawCircle(riderOffset, 10, Paint()..color = Colors.white);
+    canvas.drawCircle(riderOffset, 8, Paint()..color = AppColors.primaryDark);
+    canvas.drawCircle(riderOffset, 3, Paint()..color = AppColors.softCyan);
+
+    // Road label texts
+    _drawRoadLabel(canvas, 'MAIN GT ROAD', Offset(size.width * 0.36, size.height * 0.74));
+    _drawRoadLabel(canvas, 'BYPASS ROAD', Offset(size.width * 0.68, size.height * 0.28));
+  }
+
+  void _drawRoadLabel(Canvas canvas, String text, Offset position) {
+    const textStyle = TextStyle(
+      color: Color(0xFF64748B),
+      fontSize: 8,
+      fontWeight: FontWeight.w700,
+      letterSpacing: 0.8,
+    );
+    final textSpan = TextSpan(text: text, style: textStyle);
+    final textPainter = TextPainter(
+      text: textSpan,
+      textDirection: TextDirection.ltr,
+    );
+    textPainter.layout();
+    textPainter.paint(canvas, position);
   }
 
   @override

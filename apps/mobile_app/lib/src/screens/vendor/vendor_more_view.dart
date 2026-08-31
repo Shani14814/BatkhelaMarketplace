@@ -66,16 +66,22 @@ class VendorMoreView extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Row(
-                  children: [
-                    Icon(Icons.two_wheeler_outlined, color: AppColors.primary),
-                    SizedBox(width: 8),
-                    Text(
-                      'Delivery Rider Network',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.primary),
-                    ),
-                  ],
+                const Expanded(
+                  child: Row(
+                    children: [
+                      Icon(Icons.two_wheeler_outlined, color: AppColors.primary),
+                      SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'Delivery Rider Network',
+                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.primary),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
+                const SizedBox(width: 8),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
@@ -104,9 +110,12 @@ class VendorMoreView extends StatelessWidget {
             if (pendingRiders.isNotEmpty) ...[
               Row(
                 children: [
-                  const Text(
-                    'Pending Rider Requests',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppColors.coral),
+                  const Flexible(
+                    child: Text(
+                      'Pending Rider Requests',
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppColors.coral),
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
                   const SizedBox(width: 6),
                   CircleAvatar(
@@ -168,8 +177,10 @@ class VendorMoreView extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 10),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
+          Wrap(
+            alignment: WrapAlignment.end,
+            spacing: 8,
+            runSpacing: 6,
             children: [
               OutlinedButton(
                 style: OutlinedButton.styleFrom(
@@ -186,7 +197,6 @@ class VendorMoreView extends StatelessWidget {
                 },
                 child: const Text('Decline'),
               ),
-              const SizedBox(width: 8),
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,

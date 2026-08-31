@@ -187,6 +187,13 @@ void main() {
     });
 
     testWidgets('VendorMoreView allows approving and rejecting rider applications', (tester) async {
+      tester.view.physicalSize = const Size(1200, 3600);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
       await tester.pumpWidget(buildTestableWidget(const VendorMoreView()));
       await tester.pumpAndSettle();
 

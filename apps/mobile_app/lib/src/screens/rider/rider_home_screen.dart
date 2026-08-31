@@ -37,8 +37,8 @@ class _RiderHomeScreenState extends State<RiderHomeScreen> {
           bottomNavigationBar: MarketplaceBottomNav(
             currentIndex: _currentIndex,
             onDestinationSelected: (index) => setState(() => _currentIndex = index),
-            destinations: const [
-              MarketplaceNavDestination(
+            destinations: [
+              const MarketplaceNavDestination(
                 icon: Icons.radar_outlined,
                 activeIcon: Icons.radar,
                 label: 'Radar',
@@ -47,13 +47,14 @@ class _RiderHomeScreenState extends State<RiderHomeScreen> {
                 icon: Icons.two_wheeler_outlined,
                 activeIcon: Icons.two_wheeler,
                 label: 'Deliveries',
+                badgeCount: ctrl.offeredAssignments.isNotEmpty ? ctrl.offeredAssignments.length : null,
               ),
-              MarketplaceNavDestination(
+              const MarketplaceNavDestination(
                 icon: Icons.payments_outlined,
                 activeIcon: Icons.payments,
                 label: 'Earnings',
               ),
-              MarketplaceNavDestination(
+              const MarketplaceNavDestination(
                 icon: Icons.person_outline,
                 activeIcon: Icons.person,
                 label: 'Profile',
@@ -76,50 +77,79 @@ class _RiderHomeScreenState extends State<RiderHomeScreen> {
       backgroundColor: AppColors.backgroundLight,
       appBar: AppBar(
         backgroundColor: Colors.white,
-        foregroundColor: AppColors.primary,
         elevation: 0,
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        scrolledUnderElevation: 0,
+        toolbarHeight: 70,
+        title: Row(
           children: [
-            const Text(
-              'Rider Delivery Radar',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: AppColors.primary.withAlpha(20),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Icon(Icons.two_wheeler, color: AppColors.primary, size: 24),
             ),
-            Row(
-              children: [
-                Container(
-                  width: 8,
-                  height: 8,
-                  decoration: BoxDecoration(
-                    color: ctrl.isOnline ? AppColors.primary : AppColors.error,
-                    shape: BoxShape.circle,
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text(
+                    'Rider Delivery Radar',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                      color: AppColors.textPrimary,
+                      letterSpacing: -0.2,
+                    ),
                   ),
-                ),
-                const SizedBox(width: 6),
-                Text(
-                  ctrl.isOnline ? 'ONLINE • Broadcasting Telemetry' : 'OFFLINE • Paused',
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: ctrl.isOnline ? AppColors.primary : AppColors.error,
-                    fontWeight: FontWeight.bold,
+                  const SizedBox(height: 2),
+                  Row(
+                    children: [
+                      Container(
+                        width: 8,
+                        height: 8,
+                        decoration: BoxDecoration(
+                          color: ctrl.isOnline ? AppColors.success : AppColors.error,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        ctrl.isOnline ? 'ONLINE • Broadcasting Telemetry' : 'OFFLINE • Paused',
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: ctrl.isOnline ? AppColors.primary : AppColors.error,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ],
         ),
         actions: [
-          Switch(
-            value: ctrl.isOnline,
-            activeThumbColor: AppColors.primary,
-            onChanged: (val) {
-              ctrl.toggleOnlineStatus(val);
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(val ? 'Rider radar is ONLINE' : 'Rider radar is OFFLINE'),
-                ),
-              );
-            },
+          Padding(
+            padding: const EdgeInsets.only(right: 12.0),
+            child: Switch(
+              value: ctrl.isOnline,
+              activeThumbColor: AppColors.primary,
+              activeTrackColor: AppColors.softCyan,
+              onChanged: (val) {
+                ctrl.toggleOnlineStatus(val);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    backgroundColor: AppColors.primaryDark,
+                    content: Text(val ? 'Rider radar is ONLINE and visible for dispatches' : 'Rider radar is OFFLINE'),
+                  ),
+                );
+              },
+            ),
           ),
         ],
       ),
@@ -148,7 +178,7 @@ class _RiderHomeScreenState extends State<RiderHomeScreen> {
                 child: KpiCard(
                   title: 'Today Completed',
                   value: '${ctrl.todayCompletedCount} Trips',
-                  trend: '${ctrl.profile.rating} ★ Rating',
+                  trend: '${ctrl.profile.rating} ★ Partner Rating',
                   isPositive: true,
                   icon: Icons.check_circle_outline,
                   iconColor: AppColors.indigo,
@@ -161,16 +191,23 @@ class _RiderHomeScreenState extends State<RiderHomeScreen> {
           // New Offers Alert Banner
           if (offeredCount > 0) ...[
             Container(
-              padding: const EdgeInsets.all(14),
+              padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: AppColors.coral.withAlpha(20),
-                borderRadius: BorderRadius.circular(12),
+                color: AppColors.coral.withAlpha(15),
+                borderRadius: BorderRadius.circular(16),
                 border: Border.all(color: AppColors.coral.withAlpha(60)),
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.notification_important, color: AppColors.coral),
-                  const SizedBox(width: 12),
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: AppColors.coral.withAlpha(30),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.notification_important, color: AppColors.coral, size: 22),
+                  ),
+                  const SizedBox(width: 14),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -179,6 +216,7 @@ class _RiderHomeScreenState extends State<RiderHomeScreen> {
                           '$offeredCount New Delivery Assignment Offered',
                           style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.coral, fontSize: 13),
                         ),
+                        const SizedBox(height: 2),
                         const Text(
                           'Review and accept to start pickup immediately.',
                           style: TextStyle(fontSize: 11, color: Colors.black87),
@@ -186,9 +224,16 @@ class _RiderHomeScreenState extends State<RiderHomeScreen> {
                       ],
                     ),
                   ),
-                  TextButton(
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.coral,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    ),
                     onPressed: () => setState(() => _currentIndex = 1),
-                    child: const Text('View Offer', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.coral)),
+                    child: const Text('View Offer', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
                   ),
                 ],
               ),
@@ -199,7 +244,12 @@ class _RiderHomeScreenState extends State<RiderHomeScreen> {
           // Active Delivery Hero Card
           const Text(
             'Current Assigned Delivery',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.primary),
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: AppColors.primary,
+              letterSpacing: -0.2,
+            ),
           ),
           const SizedBox(height: 8),
           if (activeDelivery != null)
@@ -212,7 +262,12 @@ class _RiderHomeScreenState extends State<RiderHomeScreen> {
           // Quick Operational Actions Grid
           const Text(
             'Quick Operations',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.primary),
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: AppColors.primary,
+              letterSpacing: -0.2,
+            ),
           ),
           const SizedBox(height: 12),
           Row(
@@ -242,37 +297,46 @@ class _RiderHomeScreenState extends State<RiderHomeScreen> {
 
   Widget _buildGpsTelemetryBanner(BuildContext context, RiderDemoController ctrl) {
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: ctrl.isOnline ? AppColors.primary.withAlpha(15) : AppColors.error.withAlpha(15),
-        borderRadius: BorderRadius.circular(12),
+        color: ctrl.isOnline ? AppColors.softCyan.withAlpha(45) : AppColors.error.withAlpha(15),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: ctrl.isOnline ? AppColors.primary.withAlpha(40) : AppColors.error.withAlpha(40),
         ),
       ),
       child: Row(
         children: [
-          Icon(
-            ctrl.isOnline ? Icons.gps_fixed : Icons.gps_off,
-            color: ctrl.isOnline ? AppColors.primary : AppColors.error,
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: ctrl.isOnline ? AppColors.primary.withAlpha(20) : AppColors.error.withAlpha(20),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              ctrl.isOnline ? Icons.gps_fixed : Icons.gps_off,
+              color: ctrl.isOnline ? AppColors.primary : AppColors.error,
+              size: 22,
+            ),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 14),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  ctrl.isOnline ? 'Batkhela GPS Node Broadcasting' : 'GPS Broadcasting Paused',
+                  ctrl.isOnline ? 'Broadcasting Location in Batkhela' : 'Telemetry Paused',
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 13,
                     color: ctrl.isOnline ? AppColors.primary : AppColors.error,
                   ),
                 ),
+                const SizedBox(height: 2),
                 Text(
                   ctrl.isOnline
-                      ? 'Live Telemetry: (34.6186, 71.9723) • High Precision'
-                      : 'Turn switch online to receive dispatch alerts.',
+                      ? 'GPS: 34.6186° N, 71.9723° E • High Accuracy'
+                      : 'Switch online toggle to start receiving delivery dispatches.',
                   style: TextStyle(fontSize: 11, color: Colors.grey.shade700),
                 ),
               ],
@@ -288,7 +352,7 @@ class _RiderHomeScreenState extends State<RiderHomeScreen> {
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: AppColors.primary.withAlpha(30)),
+        side: const BorderSide(color: Color(0xFFE2E8F0)),
       ),
       color: Colors.white,
       child: InkWell(
@@ -309,11 +373,11 @@ class _RiderHomeScreenState extends State<RiderHomeScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'Delivery #${delivery.orderNumber}',
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                    'Trip #${delivery.id}',
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppColors.textPrimary),
                   ),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
                       color: AppColors.primary.withAlpha(20),
                       borderRadius: BorderRadius.circular(8),
@@ -321,89 +385,78 @@ class _RiderHomeScreenState extends State<RiderHomeScreen> {
                     child: Text(
                       delivery.stage.displayName,
                       style: const TextStyle(
-                        color: AppColors.primary,
                         fontWeight: FontWeight.bold,
                         fontSize: 11,
+                        color: AppColors.primary,
                       ),
-                    ),
-                  ),
-                ],
-              ),
-              const Divider(height: 20),
-              Row(
-                children: [
-                  const Icon(Icons.storefront, size: 16, color: AppColors.primary),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      delivery.storeName,
-                      style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 6),
-              Row(
-                children: [
-                  const Icon(Icons.location_on, size: 16, color: AppColors.coral),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      'Drop-off: ${delivery.customerAddress}',
-                      style: TextStyle(color: Colors.grey.shade700, fontSize: 12),
                     ),
                   ),
                 ],
               ),
               const SizedBox(height: 12),
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    'Cash: PKR ${delivery.cashToCollect.toStringAsFixed(0)}',
-                    style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary),
-                  ),
-                  Text(
-                    'Earn: PKR ${delivery.totalEarnings.toStringAsFixed(0)}',
-                    style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.indigo),
+                  const Icon(Icons.storefront, size: 18, color: AppColors.primary),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(delivery.storeName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                        Text(delivery.pickupAddress, style: TextStyle(color: Colors.grey.shade600, fontSize: 11)),
+                      ],
+                    ),
                   ),
                 ],
               ),
-              const SizedBox(height: 14),
+              const SizedBox(height: 8),
               Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  const Icon(Icons.location_on, size: 18, color: AppColors.coral),
+                  const SizedBox(width: 8),
                   Expanded(
-                    child: OutlinedButton.icon(
-                      style: OutlinedButton.styleFrom(
-                        visualDensity: VisualDensity.compact,
-                      ),
-                      onPressed: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute<void>(
-                            builder: (_) => RiderDeliveryDetailScreen(delivery: delivery),
-                          ),
-                        );
-                      },
-                      icon: const Icon(Icons.map_outlined, size: 16),
-                      label: const Text('Route Detail'),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(delivery.customerArea, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                        Text(delivery.customerAddress, style: TextStyle(color: Colors.grey.shade600, fontSize: 11)),
+                      ],
                     ),
                   ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
-                        foregroundColor: Colors.white,
-                        visualDensity: VisualDensity.compact,
+                ],
+              ),
+              const Divider(height: 24, color: Color(0xFFF1F5F9)),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('Estimated Payout', style: TextStyle(fontSize: 11, color: AppColors.textTertiary)),
+                      Text(
+                        'PKR ${delivery.totalEarnings.toStringAsFixed(0)}',
+                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppColors.primary),
                       ),
-                      onPressed: () {
-                        RiderDemoController.instance.progressDeliveryStage(delivery.id);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Updated to: ${delivery.stage.displayName}')),
-                        );
-                      },
-                      child: Text(delivery.stage.nextActionLabel),
+                    ],
+                  ),
+                  ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      elevation: 0,
                     ),
+                    onPressed: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute<void>(
+                          builder: (_) => RiderDeliveryDetailScreen(delivery: delivery),
+                        ),
+                      );
+                    },
+                    icon: const Icon(Icons.navigation_outlined, size: 16),
+                    label: const Text('Open Route', style: TextStyle(fontWeight: FontWeight.bold)),
                   ),
                 ],
               ),
@@ -415,26 +468,35 @@ class _RiderHomeScreenState extends State<RiderHomeScreen> {
   }
 
   Widget _buildNoActiveDeliveryCard(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: Colors.white,
+    return Card(
+      elevation: 0,
+      shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.primary.withAlpha(20)),
+        side: const BorderSide(color: Color(0xFFE2E8F0)),
       ),
-      child: Center(
+      color: Colors.white,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 28, horizontal: 16),
         child: Column(
           children: [
-            Icon(Icons.two_wheeler_outlined, size: 48, color: Colors.grey.shade400),
-            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppColors.softCyan.withAlpha(40),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.check_circle_outline, color: AppColors.primary, size: 36),
+            ),
+            const SizedBox(height: 12),
             const Text(
-              'No Active Delivery Right Now',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+              'No active delivery right now',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: AppColors.textPrimary),
             ),
             const SizedBox(height: 4),
             Text(
-              'Stay online to receive high-value orders in Batkhela.',
-              style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
+              'Keep online status enabled. New delivery dispatches will appear here automatically.',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
             ),
           ],
         ),

@@ -7,26 +7,38 @@ import '../theme/app_typography.dart';
 
 /// KPI / Metric card for Vendor and Admin performance analytics.
 class KpiCard extends StatelessWidget {
-  final String label;
+  final String? label;
+  final String? title;
   final String value;
+  final String? subtitle;
   final IconData icon;
   final String? trendText;
+  final String? trend;
   final bool? isPositiveTrend;
+  final bool? isPositive;
   final Color? iconColor;
   final Color? iconBackgroundColor;
   final VoidCallback? onTap;
 
   const KpiCard({
     super.key,
-    required this.label,
+    this.label,
+    this.title,
     required this.value,
+    this.subtitle,
     required this.icon,
     this.trendText,
+    this.trend,
     this.isPositiveTrend,
+    this.isPositive,
     this.iconColor,
     this.iconBackgroundColor,
     this.onTap,
-  });
+  }) : assert(label != null || title != null, 'Either label or title must be provided');
+
+  String get effectiveLabel => label ?? title ?? '';
+  String? get effectiveTrend => trendText ?? trend;
+  bool? get effectiveIsPositive => isPositiveTrend ?? isPositive;
 
   @override
   Widget build(BuildContext context) {
@@ -57,7 +69,7 @@ class KpiCard extends StatelessWidget {
                   children: [
                     Expanded(
                       child: Text(
-                        label,
+                        effectiveLabel,
                         style: const TextStyle(
                           fontSize: 12,
                           color: AppColors.textSecondary,
@@ -92,33 +104,48 @@ class KpiCard extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
-                if (trendText != null) ...[
+                if (effectiveTrend != null || subtitle != null) ...[
                   const SizedBox(height: AppSpacing.xs),
                   Row(
                     children: [
-                      if (isPositiveTrend != null)
-                        Icon(
-                          isPositiveTrend!
-                              ? Icons.trending_up
-                              : Icons.trending_down,
-                          size: 14,
-                          color: isPositiveTrend!
-                              ? AppColors.success
-                              : AppColors.coral,
+                      if (effectiveTrend != null) ...[
+                        if (effectiveIsPositive != null)
+                          Icon(
+                            effectiveIsPositive!
+                                ? Icons.trending_up
+                                : Icons.trending_down,
+                            size: 14,
+                            color: effectiveIsPositive!
+                                ? AppColors.success
+                                : AppColors.coral,
+                          ),
+                        if (effectiveIsPositive != null) const SizedBox(width: 2),
+                        Text(
+                          effectiveTrend!,
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: effectiveIsPositive == null
+                                ? AppColors.textTertiary
+                                : (effectiveIsPositive!
+                                    ? AppColors.success
+                                    : AppColors.coral),
+                          ),
                         ),
-                      if (isPositiveTrend != null) const SizedBox(width: 2),
-                      Text(
-                        trendText!,
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
-                          color: isPositiveTrend == null
-                              ? AppColors.textTertiary
-                              : (isPositiveTrend!
-                                  ? AppColors.success
-                                  : AppColors.coral),
+                        if (subtitle != null) const SizedBox(width: 6),
+                      ],
+                      if (subtitle != null)
+                        Expanded(
+                          child: Text(
+                            subtitle!,
+                            style: const TextStyle(
+                              fontSize: 11,
+                              color: AppColors.textTertiary,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
-                      ),
                     ],
                   ),
                 ],

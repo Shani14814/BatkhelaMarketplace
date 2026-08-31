@@ -2,6 +2,7 @@ class Product {
   final String id;
   final String vendorId;
   final String? categoryId;
+  final String? category;
   final String name;
   final String? description;
   final double price;
@@ -15,6 +16,7 @@ class Product {
     required this.id,
     required this.vendorId,
     this.categoryId,
+    this.category,
     required this.name,
     this.description,
     required this.price,
@@ -24,6 +26,8 @@ class Product {
     this.imageUrl,
     required this.createdAt,
   });
+
+  String? get effectiveCategory => category ?? categoryId;
 
   double get effectivePrice => (discountPrice != null && discountPrice! > 0 && discountPrice! < price)
       ? discountPrice!

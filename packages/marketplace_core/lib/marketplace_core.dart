@@ -23,6 +23,10 @@ export 'src/models/delivery.dart';
 
 // Services
 export 'src/services/supabase_service.dart';
+export 'src/services/auth_repository.dart';
+export 'src/services/demo_auth_repository.dart';
+export 'src/services/supabase_auth_repository.dart';
+export 'src/services/auth_service.dart';
 
 // Shared UI Components (Google Stitch System)
 export 'src/components/marketplace_hero_banner.dart';

@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:marketplace_core/marketplace_core.dart';
-import 'src/screens/admin_dashboard_screen.dart';
+import 'src/screens/admin_auth_gate.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
+  AuthService.instance.initialize(
+    repository: DemoAuthRepository(),
+    isDemoMode: true,
+  );
   runApp(const BatkhelaAdminApp());
 }
 
@@ -16,7 +20,7 @@ class BatkhelaAdminApp extends StatelessWidget {
       title: 'Batkhela Marketplace - Super Admin',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
-      home: const AdminDashboardScreen(),
+      home: const AdminAuthGate(),
     );
   }
 }

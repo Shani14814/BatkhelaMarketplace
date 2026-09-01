@@ -63,6 +63,7 @@ class RoleSelectorScreen extends StatelessWidget {
                 subtitle: 'Browse stores, order food & groceries, track delivery',
                 icon: Icons.person_outline,
                 badgeColor: AppColors.customerBadge,
+                role: UserRole.customer,
                 target: const CustomerHomeScreen(),
               ),
               const SizedBox(height: AppSpacing.md),
@@ -72,6 +73,7 @@ class RoleSelectorScreen extends StatelessWidget {
                 subtitle: 'Manage catalog, accept orders & view store analytics',
                 icon: Icons.storefront_outlined,
                 badgeColor: AppColors.vendorBadge,
+                role: UserRole.vendor,
                 target: const VendorDashboardScreen(),
               ),
               const SizedBox(height: AppSpacing.md),
@@ -81,6 +83,7 @@ class RoleSelectorScreen extends StatelessWidget {
                 subtitle: 'Broadcast GPS radar, accept jobs, navigate routes',
                 icon: Icons.two_wheeler_outlined,
                 badgeColor: AppColors.riderBadge,
+                role: UserRole.rider,
                 target: const RiderHomeScreen(),
               ),
             ],
@@ -96,6 +99,7 @@ class RoleSelectorScreen extends StatelessWidget {
     required String subtitle,
     required IconData icon,
     required Color badgeColor,
+    required UserRole role,
     required Widget target,
   }) {
     return Card(
@@ -111,8 +115,11 @@ class RoleSelectorScreen extends StatelessWidget {
         title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
         subtitle: Text(subtitle, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
         trailing: const Icon(Icons.arrow_forward_ios, size: 14, color: AppColors.textTertiary),
-        onTap: () {
-          Navigator.push(context, MaterialPageRoute<void>(builder: (_) => target));
+        onTap: () async {
+          await AuthService.instance.signInDemo(role);
+          if (context.mounted) {
+            Navigator.push(context, MaterialPageRoute<void>(builder: (_) => target));
+          }
         },
       ),
     );

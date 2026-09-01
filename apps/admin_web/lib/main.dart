@@ -8,6 +8,7 @@ void main() {
     repository: DemoAuthRepository(),
     isDemoMode: true,
   );
+  MarketplaceDataService.instance.initialize(isDemoMode: true);
   runApp(const BatkhelaAdminApp());
 }
 

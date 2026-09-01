@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:marketplace_core/marketplace_core.dart';
+import 'package:marketplace_core/marketplace_core.dart' hide RiderProfile;
 import '../../data/rider_demo_data.dart';
 
 class RiderProfileView extends StatelessWidget {

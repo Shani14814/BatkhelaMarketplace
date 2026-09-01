@@ -5,10 +5,11 @@ import '../../models/delivery.dart';
 import '../rider_repository.dart';
 
 class SupabaseRiderRepository implements RiderRepository {
-  final SupabaseClient _client;
+  final SupabaseClient? _customClient;
 
-  SupabaseRiderRepository({SupabaseClient? client})
-      : _client = client ?? Supabase.instance.client;
+  SupabaseRiderRepository({SupabaseClient? client}) : _customClient = client;
+
+  SupabaseClient get _client => _customClient ?? Supabase.instance.client;
 
   @override
   Future<RiderProfile?> getRiderProfile(String riderId) async {

@@ -6,6 +6,7 @@ import '../repositories/rider_repository.dart';
 import '../repositories/delivery_repository.dart';
 import '../repositories/category_repository.dart';
 import '../repositories/admin_repository.dart';
+import '../repositories/storage_repository.dart';
 
 import '../repositories/demo/demo_customer_repository.dart';
 import '../repositories/demo/demo_vendor_repository.dart';
@@ -15,6 +16,7 @@ import '../repositories/demo/demo_rider_repository.dart';
 import '../repositories/demo/demo_delivery_repository.dart';
 import '../repositories/demo/demo_category_repository.dart';
 import '../repositories/demo/demo_admin_repository.dart';
+import '../repositories/demo/demo_storage_repository.dart';
 
 import '../repositories/supabase/supabase_customer_repository.dart';
 import '../repositories/supabase/supabase_vendor_repository.dart';
@@ -24,6 +26,7 @@ import '../repositories/supabase/supabase_rider_repository.dart';
 import '../repositories/supabase/supabase_delivery_repository.dart';
 import '../repositories/supabase/supabase_category_repository.dart';
 import '../repositories/supabase/supabase_admin_repository.dart';
+import '../repositories/supabase/supabase_storage_repository.dart';
 
 /// Centralized Data Hub & Repository Registry for Batkhela Marketplace
 class MarketplaceDataService {
@@ -41,6 +44,7 @@ class MarketplaceDataService {
   late DeliveryRepository deliveryRepo;
   late CategoryRepository categoryRepo;
   late AdminRepository adminRepo;
+  late StorageRepository storageRepo;
 
   /// Initialize Data Hub with either Demo or Real Supabase Repositories
   void initialize({
@@ -53,6 +57,7 @@ class MarketplaceDataService {
     DeliveryRepository? customDeliveryRepo,
     CategoryRepository? customCategoryRepo,
     AdminRepository? customAdminRepo,
+    StorageRepository? customStorageRepo,
   }) {
     _isDemoMode = isDemoMode;
 
@@ -66,6 +71,7 @@ class MarketplaceDataService {
       riderRepo = customRiderRepo ?? DemoRiderRepository();
       deliveryRepo = customDeliveryRepo ?? DemoDeliveryRepository();
       adminRepo = customAdminRepo ?? DemoAdminRepository();
+      storageRepo = customStorageRepo ?? DemoStorageRepository();
     } else {
       categoryRepo = customCategoryRepo ?? SupabaseCategoryRepository();
       customerRepo = customCustomerRepo ?? SupabaseCustomerRepository();
@@ -75,6 +81,7 @@ class MarketplaceDataService {
       riderRepo = customRiderRepo ?? SupabaseRiderRepository();
       deliveryRepo = customDeliveryRepo ?? SupabaseDeliveryRepository();
       adminRepo = customAdminRepo ?? SupabaseAdminRepository();
+      storageRepo = customStorageRepo ?? SupabaseStorageRepository();
     }
   }
 }

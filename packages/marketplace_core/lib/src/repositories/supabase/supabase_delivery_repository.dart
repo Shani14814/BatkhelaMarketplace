@@ -4,10 +4,11 @@ import '../../models/delivery.dart';
 import '../delivery_repository.dart';
 
 class SupabaseDeliveryRepository implements DeliveryRepository {
-  final SupabaseClient _client;
+  final SupabaseClient? _customClient;
 
-  SupabaseDeliveryRepository({SupabaseClient? client})
-      : _client = client ?? Supabase.instance.client;
+  SupabaseDeliveryRepository({SupabaseClient? client}) : _customClient = client;
+
+  SupabaseClient get _client => _customClient ?? Supabase.instance.client;
 
   @override
   Future<List<DeliveryTask>> getAssignedDeliveries(String riderId) async {

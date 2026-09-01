@@ -6,10 +6,11 @@ import '../../models/platform_setting.dart';
 import '../admin_repository.dart';
 
 class SupabaseAdminRepository implements AdminRepository {
-  final SupabaseClient _client;
+  final SupabaseClient? _customClient;
 
-  SupabaseAdminRepository({SupabaseClient? client})
-      : _client = client ?? Supabase.instance.client;
+  SupabaseAdminRepository({SupabaseClient? client}) : _customClient = client;
+
+  SupabaseClient get _client => _customClient ?? Supabase.instance.client;
 
   @override
   Future<Map<String, dynamic>> getPlatformKpis() async {

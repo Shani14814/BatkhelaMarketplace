@@ -4,10 +4,11 @@ import '../../models/category.dart';
 import '../category_repository.dart';
 
 class SupabaseCategoryRepository implements CategoryRepository {
-  final SupabaseClient _client;
+  final SupabaseClient? _customClient;
 
-  SupabaseCategoryRepository({SupabaseClient? client})
-      : _client = client ?? Supabase.instance.client;
+  SupabaseCategoryRepository({SupabaseClient? client}) : _customClient = client;
+
+  SupabaseClient get _client => _customClient ?? Supabase.instance.client;
 
   @override
   Future<List<MarketplaceCategory>> getActiveCategories() async {

@@ -5,10 +5,11 @@ import '../../models/order.dart';
 import '../vendor_repository.dart';
 
 class SupabaseVendorRepository implements VendorRepository {
-  final SupabaseClient _client;
+  final SupabaseClient? _customClient;
 
-  SupabaseVendorRepository({SupabaseClient? client})
-      : _client = client ?? Supabase.instance.client;
+  SupabaseVendorRepository({SupabaseClient? client}) : _customClient = client;
+
+  SupabaseClient get _client => _customClient ?? Supabase.instance.client;
 
   @override
   Future<Vendor?> getVendorProfile(String vendorId) async {

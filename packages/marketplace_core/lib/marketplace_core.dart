@@ -24,6 +24,7 @@ export 'src/models/category.dart';
 export 'src/models/customer_address.dart';
 export 'src/models/rider_profile.dart';
 export 'src/models/platform_setting.dart';
+export 'src/models/storage_domain.dart';
 
 // Services & Repositories
 export 'src/services/supabase_service.dart';
@@ -42,6 +43,7 @@ export 'src/repositories/rider_repository.dart';
 export 'src/repositories/delivery_repository.dart';
 export 'src/repositories/category_repository.dart';
 export 'src/repositories/admin_repository.dart';
+export 'src/repositories/storage_repository.dart';
 
 export 'src/repositories/demo/demo_customer_repository.dart';
 export 'src/repositories/demo/demo_vendor_repository.dart';
@@ -51,6 +53,7 @@ export 'src/repositories/demo/demo_rider_repository.dart';
 export 'src/repositories/demo/demo_delivery_repository.dart';
 export 'src/repositories/demo/demo_category_repository.dart';
 export 'src/repositories/demo/demo_admin_repository.dart';
+export 'src/repositories/demo/demo_storage_repository.dart';
 
 export 'src/repositories/supabase/supabase_customer_repository.dart';
 export 'src/repositories/supabase/supabase_vendor_repository.dart';
@@ -60,6 +63,7 @@ export 'src/repositories/supabase/supabase_rider_repository.dart';
 export 'src/repositories/supabase/supabase_delivery_repository.dart';
 export 'src/repositories/supabase/supabase_category_repository.dart';
 export 'src/repositories/supabase/supabase_admin_repository.dart';
+export 'src/repositories/supabase/supabase_storage_repository.dart';
 
 // Shared UI Components (Google Stitch System)
 export 'src/components/marketplace_hero_banner.dart';

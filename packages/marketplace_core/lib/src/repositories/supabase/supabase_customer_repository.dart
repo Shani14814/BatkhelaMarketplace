@@ -8,10 +8,11 @@ import '../../models/order.dart';
 import '../customer_repository.dart';
 
 class SupabaseCustomerRepository implements CustomerRepository {
-  final SupabaseClient _client;
+  final SupabaseClient? _customClient;
 
-  SupabaseCustomerRepository({SupabaseClient? client})
-      : _client = client ?? Supabase.instance.client;
+  SupabaseCustomerRepository({SupabaseClient? client}) : _customClient = client;
+
+  SupabaseClient get _client => _customClient ?? Supabase.instance.client;
 
   @override
   Future<List<MarketplaceCategory>> getCategories() async {

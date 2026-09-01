@@ -1,12 +1,26 @@
+import 'dart:async';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../models/product.dart';
 import '../product_repository.dart';
 
 class SupabaseProductRepository implements ProductRepository {
-  final SupabaseClient _client;
+  final SupabaseClient? _customClient;
 
-  SupabaseProductRepository({SupabaseClient? client})
-      : _client = client ?? Supabase.instance.client;
+  SupabaseProductRepository({SupabaseClient? client}) : _customClient = client;
+
+  SupabaseClient get _client => _customClient ?? Supabase.instance.client;
+
+  @override
+  Future<Product?> getProductById(String productId) async {
+    final response = await _client
+        .from('products')
+        .select()
+        .eq('id', productId)
+        .maybeSingle();
+
+    if (response == null) return null;
+    return Product.fromJson(response);
+  }
 
   @override
   Future<List<Product>> getProductsByVendor(String vendorId) async {
@@ -19,18 +33,6 @@ class SupabaseProductRepository implements ProductRepository {
     return (response as List)
         .map((json) => Product.fromJson(json as Map<String, dynamic>))
         .toList();
-  }
-
-  @override
-  Future<Product?> getProductById(String productId) async {
-    final response = await _client
-        .from('products')
-        .select()
-        .eq('id', productId)
-        .maybeSingle();
-
-    if (response == null) return null;
-    return Product.fromJson(response);
   }
 
   @override

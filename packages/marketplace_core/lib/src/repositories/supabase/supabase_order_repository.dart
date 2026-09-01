@@ -4,10 +4,11 @@ import '../../models/order.dart';
 import '../order_repository.dart';
 
 class SupabaseOrderRepository implements OrderRepository {
-  final SupabaseClient _client;
+  final SupabaseClient? _customClient;
 
-  SupabaseOrderRepository({SupabaseClient? client})
-      : _client = client ?? Supabase.instance.client;
+  SupabaseOrderRepository({SupabaseClient? client}) : _customClient = client;
+
+  SupabaseClient get _client => _customClient ?? Supabase.instance.client;
 
   @override
   Future<MarketplaceOrder?> getOrderById(String orderId) async {

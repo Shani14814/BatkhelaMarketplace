@@ -1,7 +1,10 @@
+import 'dart:async';
 import '../../models/category.dart';
 import '../category_repository.dart';
 
 class DemoCategoryRepository implements CategoryRepository {
+  final _categoriesController = StreamController<List<MarketplaceCategory>>.broadcast();
+
   final List<MarketplaceCategory> _categories = [
     const MarketplaceCategory(
       id: 'cat-1',
@@ -65,6 +68,12 @@ class DemoCategoryRepository implements CategoryRepository {
   }
 
   @override
+  Stream<List<MarketplaceCategory>> streamActiveCategories() async* {
+    yield await getActiveCategories();
+    yield* _categoriesController.stream.map((list) => list.where((c) => c.isActive).toList());
+  }
+
+  @override
   Future<List<MarketplaceCategory>> getAllCategories() async {
     return List.unmodifiable(_categories);
   }
@@ -75,6 +84,7 @@ class DemoCategoryRepository implements CategoryRepository {
     if (index != -1) {
       final updated = _categories[index].copyWith(isActive: isActive);
       _categories[index] = updated;
+      _categoriesController.add(List.unmodifiable(_categories));
       return updated;
     }
     throw Exception('Category not found');
@@ -85,10 +95,10 @@ class DemoCategoryRepository implements CategoryRepository {
     final index = _categories.indexWhere((c) => c.id == category.id);
     if (index != -1) {
       _categories[index] = category;
-      return category;
     } else {
       _categories.add(category);
-      return category;
     }
+    _categoriesController.add(List.unmodifiable(_categories));
+    return category;
   }
 }

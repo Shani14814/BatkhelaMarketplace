@@ -1,3 +1,4 @@
+import 'dart:async';
 import '../models/category.dart';
 import '../models/vendor.dart';
 import '../models/product.dart';
@@ -14,4 +15,7 @@ abstract class CustomerRepository {
   Future<void> setDefaultAddress(String userId, String addressId);
   Future<List<MarketplaceOrder>> getCustomerOrders(String customerId);
   Future<MarketplaceOrder> createOrder(MarketplaceOrder order);
+
+  // Realtime Streams (Phase 7E)
+  Stream<List<MarketplaceOrder>> streamCustomerOrders(String customerId);
 }

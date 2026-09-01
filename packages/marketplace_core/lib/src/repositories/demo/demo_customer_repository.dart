@@ -1,3 +1,4 @@
+import 'dart:async';
 import '../../models/category.dart';
 import '../../models/vendor.dart';
 import '../../models/product.dart';
@@ -8,6 +9,7 @@ import 'demo_category_repository.dart';
 
 class DemoCustomerRepository implements CustomerRepository {
   final DemoCategoryRepository _categoryRepo;
+  final _customerOrdersController = StreamController<List<MarketplaceOrder>>.broadcast();
 
   final List<Vendor> _vendors = [
     Vendor(
@@ -237,6 +239,12 @@ class DemoCustomerRepository implements CustomerRepository {
   }
 
   @override
+  Stream<List<MarketplaceOrder>> streamCustomerOrders(String customerId) async* {
+    yield await getCustomerOrders(customerId);
+    yield* _customerOrdersController.stream;
+  }
+
+  @override
   Future<MarketplaceOrder> createOrder(MarketplaceOrder order) async {
     // Trusted calculation verification
     double calculatedSubtotal = 0.0;
@@ -266,6 +274,7 @@ class DemoCustomerRepository implements CustomerRepository {
     );
 
     _orders.insert(0, verifiedOrder);
+    _customerOrdersController.add(List.unmodifiable(_orders));
     return verifiedOrder;
   }
 }

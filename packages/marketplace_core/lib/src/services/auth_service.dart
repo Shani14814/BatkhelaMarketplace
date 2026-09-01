@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import '../models/user_profile.dart';
 import 'auth_repository.dart';
 import 'demo_auth_repository.dart';
+import 'realtime_subscription_manager.dart';
 
 /// Central Authentication Service & State Controller
 class AuthService {
@@ -40,6 +41,7 @@ class AuthService {
     bool isDemoMode = false,
   }) {
     _authSubscription?.cancel();
+    RealtimeSubscriptionManager.instance.cancelAll();
     _repository = repository;
     _isDemoMode = isDemoMode;
     currentProfileNotifier.value = _repository.currentUserProfile;
@@ -118,6 +120,7 @@ class AuthService {
     isLoadingNotifier.value = true;
     errorNotifier.value = null;
     try {
+      await RealtimeSubscriptionManager.instance.cancelAll();
       final profile = await _repository.signInDemo(role);
       isLoadingNotifier.value = false;
       if (profile != null) {
@@ -135,6 +138,7 @@ class AuthService {
   Future<void> signOut() async {
     isLoadingNotifier.value = true;
     try {
+      await RealtimeSubscriptionManager.instance.cancelAll();
       await _repository.signOut();
       currentProfileNotifier.value = null;
       errorNotifier.value = null;

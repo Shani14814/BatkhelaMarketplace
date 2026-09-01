@@ -1,7 +1,12 @@
+import 'dart:async';
 import '../../models/rider_profile.dart';
+import '../../models/delivery.dart';
 import '../rider_repository.dart';
 
 class DemoRiderRepository implements RiderRepository {
+  final _locationController = StreamController<RiderLocation?>.broadcast();
+  final _profileController = StreamController<RiderProfile?>.broadcast();
+
   final RiderProfile _profile = const RiderProfile(
     id: 'rider-prof-1',
     userId: 'demo-role-rider',
@@ -50,8 +55,22 @@ class DemoRiderRepository implements RiderRepository {
   }
 
   @override
+  Stream<RiderProfile?> streamRiderProfile(String riderId) async* {
+    yield await getRiderProfile(riderId);
+    yield* _profileController.stream;
+  }
+
+  @override
   Future<void> updateOnlineStatus(String riderId, bool isOnline) async {
     _isOnline = isOnline;
+    _locationController.add(RiderLocation(
+      riderId: riderId,
+      latitude: _currentLat,
+      longitude: _currentLng,
+      heading: _currentHeading,
+      isOnline: isOnline,
+      updatedAt: DateTime.now(),
+    ));
   }
 
   @override
@@ -64,6 +83,27 @@ class DemoRiderRepository implements RiderRepository {
     _currentLat = latitude;
     _currentLng = longitude;
     _currentHeading = heading;
+    _locationController.add(RiderLocation(
+      riderId: riderId,
+      latitude: latitude,
+      longitude: longitude,
+      heading: heading,
+      isOnline: _isOnline,
+      updatedAt: DateTime.now(),
+    ));
+  }
+
+  @override
+  Stream<RiderLocation?> streamRiderLocation(String riderId) async* {
+    yield RiderLocation(
+      riderId: riderId,
+      latitude: _currentLat,
+      longitude: _currentLng,
+      heading: _currentHeading,
+      isOnline: _isOnline,
+      updatedAt: DateTime.now(),
+    );
+    yield* _locationController.stream;
   }
 
   @override

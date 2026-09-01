@@ -32,6 +32,7 @@ export 'src/services/demo_auth_repository.dart';
 export 'src/services/supabase_auth_repository.dart';
 export 'src/services/auth_service.dart';
 export 'src/services/marketplace_data_service.dart';
+export 'src/services/realtime_subscription_manager.dart';
 
 export 'src/repositories/customer_repository.dart';
 export 'src/repositories/vendor_repository.dart';

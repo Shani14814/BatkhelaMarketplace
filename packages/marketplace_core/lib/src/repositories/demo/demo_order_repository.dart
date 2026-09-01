@@ -1,7 +1,10 @@
+import 'dart:async';
 import '../../models/order.dart';
 import '../order_repository.dart';
 
 class DemoOrderRepository implements OrderRepository {
+  final _ordersController = StreamController<List<MarketplaceOrder>>.broadcast();
+
   final List<MarketplaceOrder> _orders = [
     MarketplaceOrder(
       id: 'ord-1001',
@@ -70,6 +73,15 @@ class DemoOrderRepository implements OrderRepository {
   }
 
   @override
+  Stream<MarketplaceOrder?> streamOrder(String orderId) async* {
+    yield await getOrderById(orderId);
+    yield* _ordersController.stream.map((list) {
+      final match = list.where((o) => o.id == orderId);
+      return match.isNotEmpty ? match.first : null;
+    });
+  }
+
+  @override
   Future<MarketplaceOrder> placeOrder(MarketplaceOrder order) async {
     // Trusted calculation on server
     double subtotal = 0.0;
@@ -99,6 +111,7 @@ class DemoOrderRepository implements OrderRepository {
     );
 
     _orders.insert(0, placedOrder);
+    _ordersController.add(List.unmodifiable(_orders));
     return placedOrder;
   }
 
@@ -127,6 +140,7 @@ class DemoOrderRepository implements OrderRepository {
         createdAt: existing.createdAt,
       );
       _orders[index] = updated;
+      _ordersController.add(List.unmodifiable(_orders));
       return updated;
     }
     throw Exception('Order not found');
@@ -138,12 +152,31 @@ class DemoOrderRepository implements OrderRepository {
   }
 
   @override
+  Stream<List<MarketplaceOrder>> streamOrdersForCustomer(String customerId) async* {
+    yield await getOrdersForCustomer(customerId);
+    yield* _ordersController.stream.map((list) =>
+        list.where((o) => o.customerId == customerId || customerId.startsWith('demo-user')).toList());
+  }
+
+  @override
   Future<List<MarketplaceOrder>> getOrdersForVendor(String vendorId, {OrderStatus? status}) async {
     var result = _orders.where((o) => o.vendorId == vendorId).toList();
     if (status != null) {
       result = result.where((o) => o.status == status).toList();
     }
     return result;
+  }
+
+  @override
+  Stream<List<MarketplaceOrder>> streamOrdersForVendor(String vendorId, {OrderStatus? status}) async* {
+    yield await getOrdersForVendor(vendorId, status: status);
+    yield* _ordersController.stream.map((list) {
+      var filtered = list.where((o) => o.vendorId == vendorId).toList();
+      if (status != null) {
+        filtered = filtered.where((o) => o.status == status).toList();
+      }
+      return filtered;
+    });
   }
 
   @override

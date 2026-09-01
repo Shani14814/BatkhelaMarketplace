@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../models/vendor.dart';
 import '../../models/rider_profile.dart';
@@ -12,11 +13,10 @@ class SupabaseAdminRepository implements AdminRepository {
 
   @override
   Future<Map<String, dynamic>> getPlatformKpis() async {
-    // In production, fetch aggregate stats from orders, vendors, and riders
     final vendorsRes = await _client.from('vendors').select('id').eq('is_verified', true);
     final activeVendorsCount = (vendorsRes as List).length;
 
-    final ridersRes = await _client.from('rider_profiles').select('id').eq('is_verified', true);
+    final ridersRes = await _client.from('rider_profiles').select('id').eq('approval_status', 'approved');
     final activeRidersCount = (ridersRes as List).length;
 
     final ordersRes = await _client.from('orders').select('total_amount, platform_fee');
@@ -51,6 +51,18 @@ class SupabaseAdminRepository implements AdminRepository {
   }
 
   @override
+  Stream<List<Vendor>> streamPendingVendors() {
+    return _client
+        .from('vendors')
+        .stream(primaryKey: ['id'])
+        .order('created_at', ascending: false)
+        .map((data) => data
+            .map((json) => Vendor.fromJson(json))
+            .where((v) => !v.isVerified)
+            .toList());
+  }
+
+  @override
   Future<Vendor> updateVendorApproval(String vendorId, bool isVerified) async {
     final response = await _client
         .from('vendors')
@@ -70,7 +82,7 @@ class SupabaseAdminRepository implements AdminRepository {
     final response = await _client
         .from('rider_profiles')
         .select()
-        .eq('is_verified', false);
+        .eq('approval_status', 'pending');
 
     return (response as List)
         .map((json) => RiderProfile.fromJson(json as Map<String, dynamic>))
@@ -78,10 +90,24 @@ class SupabaseAdminRepository implements AdminRepository {
   }
 
   @override
+  Stream<List<RiderProfile>> streamPendingRiderApplications() {
+    return _client
+        .from('rider_profiles')
+        .stream(primaryKey: ['id'])
+        .map((data) => data
+            .map((json) => RiderProfile.fromJson(json))
+            .where((r) => !r.isVerified)
+            .toList());
+  }
+
+  @override
   Future<RiderProfile> updateRiderApproval(String riderId, bool isVerified) async {
     final response = await _client
         .from('rider_profiles')
-        .update({'is_verified': isVerified})
+        .update({
+          'approval_status': isVerified ? 'approved' : 'rejected',
+          'is_available': isVerified,
+        })
         .eq('id', riderId)
         .select()
         .single();
@@ -94,7 +120,7 @@ class SupabaseAdminRepository implements AdminRepository {
     final response = await _client
         .from('service_cities')
         .select()
-        .order('name', ascending: true);
+        .order('display_order', ascending: true);
 
     return (response as List)
         .map((json) => ServiceCity.fromJson(json as Map<String, dynamic>))
@@ -123,6 +149,15 @@ class SupabaseAdminRepository implements AdminRepository {
     return (response as List)
         .map((json) => Promotion.fromJson(json as Map<String, dynamic>))
         .toList();
+  }
+
+  @override
+  Stream<List<Promotion>> streamPromotions() {
+    return _client
+        .from('promotions')
+        .stream(primaryKey: ['id'])
+        .order('created_at', ascending: false)
+        .map((data) => data.map((json) => Promotion.fromJson(json)).toList());
   }
 
   @override

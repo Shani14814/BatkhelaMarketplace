@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../models/vendor.dart';
 import '../../models/order.dart';
@@ -19,6 +20,15 @@ class SupabaseVendorRepository implements VendorRepository {
 
     if (response == null) return null;
     return Vendor.fromJson(response);
+  }
+
+  @override
+  Stream<Vendor?> streamVendorProfile(String vendorId) {
+    return _client
+        .from('vendors')
+        .stream(primaryKey: ['id'])
+        .eq('id', vendorId)
+        .map((data) => data.isNotEmpty ? Vendor.fromJson(data.first) : null);
   }
 
   @override
@@ -51,6 +61,22 @@ class SupabaseVendorRepository implements VendorRepository {
       final items = itemsJson.map((i) => OrderItem.fromJson(i as Map<String, dynamic>)).toList();
       return MarketplaceOrder.fromJson(json as Map<String, dynamic>, items: items);
     }).toList();
+  }
+
+  @override
+  Stream<List<MarketplaceOrder>> streamVendorOrders(String vendorId, {OrderStatus? status}) {
+    return _client
+        .from('orders')
+        .stream(primaryKey: ['id'])
+        .eq('vendor_id', vendorId)
+        .order('created_at', ascending: false)
+        .map((data) {
+          final list = data.map((json) => MarketplaceOrder.fromJson(json)).toList();
+          if (status != null) {
+            return list.where((o) => o.status == status).toList();
+          }
+          return list;
+        });
   }
 
   @override

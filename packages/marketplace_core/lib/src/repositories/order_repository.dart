@@ -1,3 +1,4 @@
+import 'dart:async';
 import '../models/order.dart';
 
 abstract class OrderRepository {
@@ -7,4 +8,9 @@ abstract class OrderRepository {
   Future<List<MarketplaceOrder>> getOrdersForCustomer(String customerId);
   Future<List<MarketplaceOrder>> getOrdersForVendor(String vendorId, {OrderStatus? status});
   Future<List<MarketplaceOrder>> getAllOrders({OrderStatus? status});
+
+  // Realtime Streams (Phase 7E)
+  Stream<MarketplaceOrder?> streamOrder(String orderId);
+  Stream<List<MarketplaceOrder>> streamOrdersForCustomer(String customerId);
+  Stream<List<MarketplaceOrder>> streamOrdersForVendor(String vendorId, {OrderStatus? status});
 }

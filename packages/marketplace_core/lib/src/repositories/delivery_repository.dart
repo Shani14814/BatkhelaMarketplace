@@ -1,3 +1,4 @@
+import 'dart:async';
 import '../models/delivery.dart';
 
 abstract class DeliveryRepository {
@@ -10,4 +11,9 @@ abstract class DeliveryRepository {
     String? proofImageUrl,
   });
   Future<DeliveryTask?> getDeliveryByOrderId(String orderId);
+
+  // Realtime Streams (Phase 7E)
+  Stream<List<DeliveryTask>> streamRiderDeliveries(String riderId);
+  Stream<List<DeliveryTask>> streamAvailableDeliveries();
+  Stream<DeliveryTask?> streamDeliveryForOrder(String orderId);
 }

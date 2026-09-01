@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../models/order.dart';
 import '../order_repository.dart';
@@ -20,6 +21,15 @@ class SupabaseOrderRepository implements OrderRepository {
     final itemsJson = (response['order_items'] as List?) ?? [];
     final items = itemsJson.map((i) => OrderItem.fromJson(i as Map<String, dynamic>)).toList();
     return MarketplaceOrder.fromJson(response, items: items);
+  }
+
+  @override
+  Stream<MarketplaceOrder?> streamOrder(String orderId) {
+    return _client
+        .from('orders')
+        .stream(primaryKey: ['id'])
+        .eq('id', orderId)
+        .map((data) => data.isNotEmpty ? MarketplaceOrder.fromJson(data.first) : null);
   }
 
   @override
@@ -93,6 +103,16 @@ class SupabaseOrderRepository implements OrderRepository {
   }
 
   @override
+  Stream<List<MarketplaceOrder>> streamOrdersForCustomer(String customerId) {
+    return _client
+        .from('orders')
+        .stream(primaryKey: ['id'])
+        .eq('customer_id', customerId)
+        .order('created_at', ascending: false)
+        .map((data) => data.map((json) => MarketplaceOrder.fromJson(json)).toList());
+  }
+
+  @override
   Future<List<MarketplaceOrder>> getOrdersForVendor(String vendorId, {OrderStatus? status}) async {
     var query = _client
         .from('orders')
@@ -110,6 +130,22 @@ class SupabaseOrderRepository implements OrderRepository {
       final items = itemsJson.map((i) => OrderItem.fromJson(i as Map<String, dynamic>)).toList();
       return MarketplaceOrder.fromJson(json as Map<String, dynamic>, items: items);
     }).toList();
+  }
+
+  @override
+  Stream<List<MarketplaceOrder>> streamOrdersForVendor(String vendorId, {OrderStatus? status}) {
+    return _client
+        .from('orders')
+        .stream(primaryKey: ['id'])
+        .eq('vendor_id', vendorId)
+        .order('created_at', ascending: false)
+        .map((data) {
+          final list = data.map((json) => MarketplaceOrder.fromJson(json)).toList();
+          if (status != null) {
+            return list.where((o) => o.status == status).toList();
+          }
+          return list;
+        });
   }
 
   @override

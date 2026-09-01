@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../models/category.dart';
 import '../category_repository.dart';
@@ -19,6 +20,18 @@ class SupabaseCategoryRepository implements CategoryRepository {
     return (response as List)
         .map((json) => MarketplaceCategory.fromJson(json as Map<String, dynamic>))
         .toList();
+  }
+
+  @override
+  Stream<List<MarketplaceCategory>> streamActiveCategories() {
+    return _client
+        .from('marketplace_categories')
+        .stream(primaryKey: ['id'])
+        .order('display_order', ascending: true)
+        .map((data) => data
+            .map((json) => MarketplaceCategory.fromJson(json))
+            .where((c) => c.isActive)
+            .toList());
   }
 
   @override

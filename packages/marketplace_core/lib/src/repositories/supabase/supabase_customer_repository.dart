@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../models/category.dart';
 import '../../models/vendor.dart';
@@ -74,7 +75,7 @@ class SupabaseCustomerRepository implements CustomerRepository {
     final response = await _client
         .from('customer_addresses')
         .select()
-        .eq('user_id', userId)
+        .eq('customer_id', userId)
         .order('is_default', ascending: false);
 
     return (response as List)
@@ -99,7 +100,7 @@ class SupabaseCustomerRepository implements CustomerRepository {
     await _client
         .from('customer_addresses')
         .update({'is_default': false})
-        .eq('user_id', userId);
+        .eq('customer_id', userId);
 
     // Set specific default
     await _client
@@ -121,6 +122,16 @@ class SupabaseCustomerRepository implements CustomerRepository {
       final items = itemsJson.map((i) => OrderItem.fromJson(i as Map<String, dynamic>)).toList();
       return MarketplaceOrder.fromJson(json as Map<String, dynamic>, items: items);
     }).toList();
+  }
+
+  @override
+  Stream<List<MarketplaceOrder>> streamCustomerOrders(String customerId) {
+    return _client
+        .from('orders')
+        .stream(primaryKey: ['id'])
+        .eq('customer_id', customerId)
+        .order('created_at', ascending: false)
+        .map((data) => data.map((json) => MarketplaceOrder.fromJson(json)).toList());
   }
 
   @override

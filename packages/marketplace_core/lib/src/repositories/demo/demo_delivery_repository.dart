@@ -1,7 +1,10 @@
+import 'dart:async';
 import '../../models/delivery.dart';
 import '../delivery_repository.dart';
 
 class DemoDeliveryRepository implements DeliveryRepository {
+  final _deliveriesController = StreamController<List<DeliveryTask>>.broadcast();
+
   final List<DeliveryTask> _tasks = [
     DeliveryTask(
       id: 'del-101',
@@ -26,8 +29,22 @@ class DemoDeliveryRepository implements DeliveryRepository {
   }
 
   @override
+  Stream<List<DeliveryTask>> streamRiderDeliveries(String riderId) async* {
+    yield await getAssignedDeliveries(riderId);
+    yield* _deliveriesController.stream.map((list) =>
+        list.where((t) => t.riderId == riderId || t.riderId == 'demo-role-rider').toList());
+  }
+
+  @override
   Future<List<DeliveryTask>> getAvailableDeliveries() async {
     return _tasks.where((t) => t.status == DeliveryStatus.pending && t.riderId == null).toList();
+  }
+
+  @override
+  Stream<List<DeliveryTask>> streamAvailableDeliveries() async* {
+    yield await getAvailableDeliveries();
+    yield* _deliveriesController.stream.map((list) =>
+        list.where((t) => t.status == DeliveryStatus.pending && t.riderId == null).toList());
   }
 
   @override
@@ -42,6 +59,7 @@ class DemoDeliveryRepository implements DeliveryRepository {
         createdAt: _tasks[index].createdAt,
       );
       _tasks[index] = updated;
+      _deliveriesController.add(List.unmodifiable(_tasks));
       return updated;
     }
     throw Exception('Delivery task not found');
@@ -67,6 +85,7 @@ class DemoDeliveryRepository implements DeliveryRepository {
         createdAt: existing.createdAt,
       );
       _tasks[index] = updated;
+      _deliveriesController.add(List.unmodifiable(_tasks));
       return updated;
     }
     throw Exception('Delivery task not found');
@@ -76,5 +95,14 @@ class DemoDeliveryRepository implements DeliveryRepository {
   Future<DeliveryTask?> getDeliveryByOrderId(String orderId) async {
     final match = _tasks.where((t) => t.orderId == orderId);
     return match.isNotEmpty ? match.first : null;
+  }
+
+  @override
+  Stream<DeliveryTask?> streamDeliveryForOrder(String orderId) async* {
+    yield await getDeliveryByOrderId(orderId);
+    yield* _deliveriesController.stream.map((list) {
+      final match = list.where((t) => t.orderId == orderId);
+      return match.isNotEmpty ? match.first : null;
+    });
   }
 }

@@ -1,9 +1,14 @@
+import 'dart:async';
 import '../../models/vendor.dart';
 import '../../models/rider_profile.dart';
 import '../../models/platform_setting.dart';
 import '../admin_repository.dart';
 
 class DemoAdminRepository implements AdminRepository {
+  final _pendingVendorsController = StreamController<List<Vendor>>.broadcast();
+  final _pendingRidersController = StreamController<List<RiderProfile>>.broadcast();
+  final _promotionsController = StreamController<List<Promotion>>.broadcast();
+
   final List<Vendor> _pendingVendors = [
     Vendor(
       id: 'vendor-pending-1',
@@ -107,6 +112,12 @@ class DemoAdminRepository implements AdminRepository {
   }
 
   @override
+  Stream<List<Vendor>> streamPendingVendors() async* {
+    yield await getPendingVendors();
+    yield* _pendingVendorsController.stream;
+  }
+
+  @override
   Future<Vendor> updateVendorApproval(String vendorId, bool isVerified) async {
     final index = _pendingVendors.indexWhere((v) => v.id == vendorId);
     if (index != -1) {
@@ -128,6 +139,7 @@ class DemoAdminRepository implements AdminRepository {
         createdAt: existing.createdAt,
       );
       _pendingVendors.removeAt(index);
+      _pendingVendorsController.add(List.unmodifiable(_pendingVendors));
       return updated;
     }
     throw Exception('Vendor application not found');
@@ -139,12 +151,19 @@ class DemoAdminRepository implements AdminRepository {
   }
 
   @override
+  Stream<List<RiderProfile>> streamPendingRiderApplications() async* {
+    yield await getPendingRiderApplications();
+    yield* _pendingRidersController.stream;
+  }
+
+  @override
   Future<RiderProfile> updateRiderApproval(String riderId, bool isVerified) async {
     final index = _pendingRiders.indexWhere((r) => r.id == riderId);
     if (index != -1) {
       final existing = _pendingRiders[index];
       final updated = existing.copyWith(isVerified: isVerified);
       _pendingRiders.removeAt(index);
+      _pendingRidersController.add(List.unmodifiable(_pendingRiders));
       return updated;
     }
     throw Exception('Rider application not found');
@@ -172,11 +191,18 @@ class DemoAdminRepository implements AdminRepository {
   }
 
   @override
+  Stream<List<Promotion>> streamPromotions() async* {
+    yield await getPromotions();
+    yield* _promotionsController.stream;
+  }
+
+  @override
   Future<Promotion> togglePromotionActive(String promoId, bool isActive) async {
     final index = _promotions.indexWhere((p) => p.id == promoId);
     if (index != -1) {
       final updated = _promotions[index].copyWith(isActive: isActive);
       _promotions[index] = updated;
+      _promotionsController.add(List.unmodifiable(_promotions));
       return updated;
     }
     throw Exception('Promotion not found');

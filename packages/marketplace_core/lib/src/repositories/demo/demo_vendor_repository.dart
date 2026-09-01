@@ -1,8 +1,12 @@
+import 'dart:async';
 import '../../models/vendor.dart';
 import '../../models/order.dart';
 import '../vendor_repository.dart';
 
 class DemoVendorRepository implements VendorRepository {
+  final _vendorOrdersController = StreamController<List<MarketplaceOrder>>.broadcast();
+  final _vendorProfileController = StreamController<Vendor?>.broadcast();
+
   final Map<String, Vendor> _vendors = {
     'store-1': Vendor(
       id: 'store-1',
@@ -89,6 +93,12 @@ class DemoVendorRepository implements VendorRepository {
   }
 
   @override
+  Stream<Vendor?> streamVendorProfile(String vendorId) async* {
+    yield await getVendorProfile(vendorId);
+    yield* _vendorProfileController.stream;
+  }
+
+  @override
   Future<Vendor> updateStoreStatus(String vendorId, {required bool isOpen}) async {
     final existing = _vendors[vendorId] ?? _vendors['store-1']!;
     final updated = Vendor(
@@ -108,6 +118,7 @@ class DemoVendorRepository implements VendorRepository {
       createdAt: existing.createdAt,
     );
     _vendors[existing.id] = updated;
+    _vendorProfileController.add(updated);
     return updated;
   }
 
@@ -117,6 +128,12 @@ class DemoVendorRepository implements VendorRepository {
       return _orders.where((o) => o.status == status).toList();
     }
     return List.unmodifiable(_orders);
+  }
+
+  @override
+  Stream<List<MarketplaceOrder>> streamVendorOrders(String vendorId, {OrderStatus? status}) async* {
+    yield await getVendorOrders(vendorId, status: status);
+    yield* _vendorOrdersController.stream;
   }
 
   @override
@@ -144,6 +161,7 @@ class DemoVendorRepository implements VendorRepository {
         createdAt: existing.createdAt,
       );
       _orders[index] = updated;
+      _vendorOrdersController.add(List.unmodifiable(_orders));
       return updated;
     }
     throw Exception('Order not found');

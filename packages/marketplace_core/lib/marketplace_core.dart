@@ -25,6 +25,7 @@ export 'src/models/customer_address.dart';
 export 'src/models/rider_profile.dart';
 export 'src/models/platform_setting.dart';
 export 'src/models/storage_domain.dart';
+export 'src/models/location_domain.dart';
 
 // Services & Repositories
 export 'src/services/supabase_service.dart';
@@ -34,6 +35,9 @@ export 'src/services/supabase_auth_repository.dart';
 export 'src/services/auth_service.dart';
 export 'src/services/marketplace_data_service.dart';
 export 'src/services/realtime_subscription_manager.dart';
+export 'src/services/location/location_service.dart';
+export 'src/services/location/demo_location_service.dart';
+export 'src/services/location/rider_location_tracker.dart';
 
 export 'src/repositories/customer_repository.dart';
 export 'src/repositories/vendor_repository.dart';

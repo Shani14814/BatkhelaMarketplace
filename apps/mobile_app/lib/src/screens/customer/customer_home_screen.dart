@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:marketplace_core/marketplace_core.dart';
 import '../../data/customer_demo_data.dart';
+import '../../widgets/route_navigation_preview.dart';
 import 'store_detail_screen.dart';
 
 /// Customer Marketplace Main Screen featuring Stitch Bottom Navigation & 5 Core Views
@@ -695,6 +696,24 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
                         ),
                       ],
                     ),
+                    if (order.status == OrderStatus.outForDelivery ||
+                        order.status == OrderStatus.preparing ||
+                        order.status == OrderStatus.accepted) ...[
+                      const SizedBox(height: AppSpacing.sm),
+                      SizedBox(
+                        width: double.infinity,
+                        child: OutlinedButton.icon(
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: AppColors.primary,
+                            side: const BorderSide(color: AppColors.primary),
+                            shape: const RoundedRectangleBorder(borderRadius: AppRadius.roundedMd),
+                          ),
+                          onPressed: () => _showLiveTrackingSheet(context, order),
+                          icon: const Icon(Icons.location_on_outlined, size: 16),
+                          label: const Text('Track Live Rider & Route', style: TextStyle(fontWeight: FontWeight.bold)),
+                        ),
+                      ),
+                    ],
                   ],
                 ),
               );
@@ -933,6 +952,120 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
                 ),
               ],
             ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _showLiveTrackingSheet(BuildContext context, MarketplaceOrder order) {
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        return Container(
+          height: MediaQuery.of(context).size.height * 0.75,
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          child: Column(
+            children: [
+              // Header Drag Handle
+              Container(
+                margin: const EdgeInsets.symmetric(vertical: 12),
+                width: 48,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade300,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Live Order Tracking',
+                          style: AppTypography.headline(fontSize: 18, fontWeight: FontWeight.bold),
+                        ),
+                        Text(
+                          'Order #${order.orderNumber ?? order.id} • ${order.status.displayName}',
+                          style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                        ),
+                      ],
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.close),
+                      onPressed: () => Navigator.pop(ctx),
+                    ),
+                  ],
+                ),
+              ),
+              const Divider(),
+              Expanded(
+                child: ListView(
+                  padding: const EdgeInsets.all(AppSpacing.md),
+                  children: [
+                    RouteNavigationPreview(
+                      originTitle: 'Merchant Store',
+                      originAddress: 'Batkhela Central Bazaar',
+                      destinationTitle: 'Delivery Destination',
+                      destinationAddress: order.deliveryAddress,
+                      distanceKm: 2.3,
+                      estimatedMinutes: 8,
+                      isGpsActive: true,
+                    ),
+                    const SizedBox(height: AppSpacing.md),
+                    Container(
+                      padding: const EdgeInsets.all(AppSpacing.md),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withAlpha(15),
+                        borderRadius: AppRadius.roundedLg,
+                        border: Border.all(color: AppColors.primary.withAlpha(40)),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.two_wheeler, color: AppColors.primary, size: 24),
+                          const SizedBox(width: 12),
+                          const Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Rider Dispatched (Kamran Khan)',
+                                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppColors.textPrimary),
+                                ),
+                                Text(
+                                  'Honda CG 125 • Heading towards drop-off location',
+                                  style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: AppColors.success.withAlpha(30),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: const Text(
+                              'LIVE GPS',
+                              style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.success),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
         );
       },

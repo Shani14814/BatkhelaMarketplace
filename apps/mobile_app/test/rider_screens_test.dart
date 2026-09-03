@@ -14,6 +14,10 @@ void main() {
     GoogleFonts.config.allowRuntimeFetching = false;
   });
 
+  tearDown(() async {
+    await MarketplaceDataService.instance.riderLocationTracker.stopTracking();
+  });
+
   Widget buildTestableWidget(Widget child) {
     return MaterialApp(
       theme: AppTheme.lightTheme,

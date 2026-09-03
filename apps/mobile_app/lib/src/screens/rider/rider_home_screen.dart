@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:marketplace_core/marketplace_core.dart';
 import '../../data/rider_demo_data.dart';
@@ -15,6 +16,38 @@ class RiderHomeScreen extends StatefulWidget {
 
 class _RiderHomeScreenState extends State<RiderHomeScreen> {
   int _currentIndex = 0;
+  StreamSubscription<LocationCoordinates>? _locationSub;
+  LocationCoordinates? _liveCoords;
+
+  @override
+  void initState() {
+    super.initState();
+    _initRiderTracking();
+  }
+
+  void _initRiderTracking() {
+    final tracker = MarketplaceDataService.instance.riderLocationTracker;
+    final ctrl = RiderDemoController.instance;
+
+    if (ctrl.isOnline) {
+      tracker.startTracking('RIDER-DEMO-001');
+    }
+
+    _locationSub = tracker.coordinatesStream.listen((coords) {
+      if (mounted) {
+        setState(() {
+          _liveCoords = coords;
+        });
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _locationSub?.cancel();
+    MarketplaceDataService.instance.riderLocationTracker.stopTracking();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -146,10 +179,16 @@ class _RiderHomeScreenState extends State<RiderHomeScreen> {
               activeTrackColor: AppColors.softCyan,
               onChanged: (val) {
                 ctrl.toggleOnlineStatus(val);
+                final tracker = MarketplaceDataService.instance.riderLocationTracker;
+                if (val) {
+                  tracker.startTracking('RIDER-DEMO-001');
+                } else {
+                  tracker.stopTracking();
+                }
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     backgroundColor: AppColors.primaryDark,
-                    content: Text(val ? 'Rider radar is ONLINE and visible for dispatches' : 'Rider radar is OFFLINE'),
+                    content: Text(val ? 'Rider radar is ONLINE and broadcasting GPS' : 'Rider radar is OFFLINE'),
                   ),
                 );
               },
@@ -214,92 +253,95 @@ class _RiderHomeScreenState extends State<RiderHomeScreen> {
                   const SizedBox(width: 14),
                   Expanded(
                     child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          '$offeredCount New Delivery Assignment Offered',
-                          style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.coral, fontSize: 13),
-                        ),
-                        const SizedBox(height: 2),
-                        const Text(
-                          'Review and accept to start pickup immediately.',
-                          style: TextStyle(fontSize: 11, color: Colors.black87),
-                        ),
-                      ],
-                    ),
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '$offeredCount New Delivery Assignment Offered',
+                        style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.coral, fontSize: 13),
+                      ),
+                      const SizedBox(height: 2),
+                      const Text(
+                        'Review and accept to start pickup immediately.',
+                        style: TextStyle(fontSize: 11, color: Colors.black87),
+                      ),
+                    ],
                   ),
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.coral,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                    ),
-                    onPressed: () => setState(() => _currentIndex = 1),
-                    child: const Text('View Offer', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                ),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.coral,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                   ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
-          ],
-
-          // Active Delivery Hero Card
-          const Text(
-            'Current Assigned Delivery',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: AppColors.primary,
-              letterSpacing: -0.2,
-            ),
-          ),
-          const SizedBox(height: 8),
-          if (activeDelivery != null)
-            _buildActiveDeliveryHeroCard(context, activeDelivery)
-          else
-            _buildNoActiveDeliveryCard(context),
-
-          const SizedBox(height: 20),
-
-          // Quick Operational Actions Grid
-          const Text(
-            'Quick Operations',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: AppColors.primary,
-              letterSpacing: -0.2,
-            ),
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(
-                child: VendorQuickActionButton(
-                  label: 'Deliveries Hub',
-                  icon: Icons.two_wheeler,
-                  badgeCount: offeredCount > 0 ? offeredCount : null,
-                  onTap: () => setState(() => _currentIndex = 1),
+                  onPressed: () => setState(() => _currentIndex = 1),
+                  child: const Text('View Offer', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
                 ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: VendorQuickActionButton(
-                  label: 'My Earnings',
-                  icon: Icons.account_balance_wallet_outlined,
-                  onTap: () => setState(() => _currentIndex = 2),
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
+          const SizedBox(height: 16),
         ],
-      ),
-    );
-  }
+
+        // Active Delivery Hero Card
+        const Text(
+          'Current Assigned Delivery',
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: AppColors.primary,
+            letterSpacing: -0.2,
+          ),
+        ),
+        const SizedBox(height: 8),
+        if (activeDelivery != null)
+          _buildActiveDeliveryHeroCard(context, activeDelivery)
+        else
+          _buildNoActiveDeliveryCard(context),
+
+        const SizedBox(height: 20),
+
+        // Quick Operational Actions Grid
+        const Text(
+          'Quick Operations',
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: AppColors.primary,
+            letterSpacing: -0.2,
+          ),
+        ),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            Expanded(
+              child: VendorQuickActionButton(
+                label: 'Deliveries Hub',
+                icon: Icons.two_wheeler,
+                badgeCount: offeredCount > 0 ? offeredCount : null,
+                onTap: () => setState(() => _currentIndex = 1),
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: VendorQuickActionButton(
+                label: 'My Earnings',
+                icon: Icons.account_balance_wallet_outlined,
+                onTap: () => setState(() => _currentIndex = 2),
+              ),
+            ),
+          ],
+        ),
+      ],
+    ),
+  );
+}
 
   Widget _buildGpsTelemetryBanner(BuildContext context, RiderDemoController ctrl) {
+    final lat = _liveCoords?.latitude ?? 34.6186;
+    final lng = _liveCoords?.longitude ?? 71.9723;
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -339,7 +381,7 @@ class _RiderHomeScreenState extends State<RiderHomeScreen> {
                 const SizedBox(height: 2),
                 Text(
                   ctrl.isOnline
-                      ? 'GPS: 34.6186° N, 71.9723° E • High Accuracy'
+                      ? 'GPS: ${lat.toStringAsFixed(4)}° N, ${lng.toStringAsFixed(4)}° E • High Accuracy'
                       : 'Switch online toggle to start receiving delivery dispatches.',
                   style: TextStyle(fontSize: 11, color: Colors.grey.shade700),
                 ),

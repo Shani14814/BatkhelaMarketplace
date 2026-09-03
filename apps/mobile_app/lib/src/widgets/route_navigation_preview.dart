@@ -8,6 +8,8 @@ class RouteNavigationPreview extends StatelessWidget {
   final String destinationAddress;
   final double distanceKm;
   final int estimatedMinutes;
+  final LocationCoordinates? currentCoordinates;
+  final bool isGpsActive;
   final VoidCallback? onSimulateNavigation;
 
   const RouteNavigationPreview({
@@ -18,11 +20,16 @@ class RouteNavigationPreview extends StatelessWidget {
     required this.destinationAddress,
     required this.distanceKm,
     required this.estimatedMinutes,
+    this.currentCoordinates,
+    this.isGpsActive = true,
     this.onSimulateNavigation,
   });
 
   @override
   Widget build(BuildContext context) {
+    final lat = currentCoordinates?.latitude ?? 34.6186;
+    final lng = currentCoordinates?.longitude ?? 71.9723;
+
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -139,10 +146,14 @@ class RouteNavigationPreview extends StatelessWidget {
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(Icons.satellite_alt_rounded, size: 12, color: AppColors.primary),
+                        Icon(
+                          isGpsActive ? Icons.satellite_alt_rounded : Icons.gps_off,
+                          size: 12,
+                          color: isGpsActive ? AppColors.primary : AppColors.error,
+                        ),
                         const SizedBox(width: 5),
                         Text(
-                          '${distanceKm.toStringAsFixed(1)} KM • GPS 34.6186° N',
+                          '${distanceKm.toStringAsFixed(1)} KM • GPS ${lat.toStringAsFixed(4)}° N, ${lng.toStringAsFixed(4)}° E',
                           style: const TextStyle(
                             color: AppColors.primaryDark,
                             fontSize: 10,

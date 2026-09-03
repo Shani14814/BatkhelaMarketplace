@@ -22,6 +22,10 @@ void main() {
     );
   });
 
+  tearDown(() async {
+    await MarketplaceDataService.instance.riderLocationTracker.stopTracking();
+  });
+
   Widget buildTestApp(Widget home) {
     return MaterialApp(
       theme: AppTheme.lightTheme,

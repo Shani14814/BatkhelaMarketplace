@@ -28,10 +28,16 @@ import '../repositories/supabase/supabase_category_repository.dart';
 import '../repositories/supabase/supabase_admin_repository.dart';
 import '../repositories/supabase/supabase_storage_repository.dart';
 
+import 'location/location_service.dart';
+import 'location/demo_location_service.dart';
+import 'location/rider_location_tracker.dart';
+
 /// Centralized Data Hub & Repository Registry for Batkhela Marketplace
 class MarketplaceDataService {
   static final MarketplaceDataService instance = MarketplaceDataService._internal();
-  MarketplaceDataService._internal();
+  MarketplaceDataService._internal() {
+    initialize(isDemoMode: true);
+  }
 
   bool _isDemoMode = true;
   bool get isDemoMode => _isDemoMode;
@@ -45,6 +51,8 @@ class MarketplaceDataService {
   late CategoryRepository categoryRepo;
   late AdminRepository adminRepo;
   late StorageRepository storageRepo;
+  late LocationService locationService;
+  late RiderLocationTracker riderLocationTracker;
 
   /// Initialize Data Hub with either Demo or Real Supabase Repositories
   void initialize({
@@ -58,6 +66,7 @@ class MarketplaceDataService {
     CategoryRepository? customCategoryRepo,
     AdminRepository? customAdminRepo,
     StorageRepository? customStorageRepo,
+    LocationService? customLocationService,
   }) {
     _isDemoMode = isDemoMode;
 
@@ -72,6 +81,7 @@ class MarketplaceDataService {
       deliveryRepo = customDeliveryRepo ?? DemoDeliveryRepository();
       adminRepo = customAdminRepo ?? DemoAdminRepository();
       storageRepo = customStorageRepo ?? DemoStorageRepository();
+      locationService = customLocationService ?? DemoLocationService();
     } else {
       categoryRepo = customCategoryRepo ?? SupabaseCategoryRepository();
       customerRepo = customCustomerRepo ?? SupabaseCustomerRepository();
@@ -82,6 +92,12 @@ class MarketplaceDataService {
       deliveryRepo = customDeliveryRepo ?? SupabaseDeliveryRepository();
       adminRepo = customAdminRepo ?? SupabaseAdminRepository();
       storageRepo = customStorageRepo ?? SupabaseStorageRepository();
+      locationService = customLocationService ?? DemoLocationService();
     }
+
+    riderLocationTracker = RiderLocationTracker(
+      locationService: locationService,
+      riderRepository: riderRepo,
+    );
   }
 }

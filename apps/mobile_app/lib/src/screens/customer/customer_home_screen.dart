@@ -652,11 +652,51 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
                     ],
                     if (matchingStores.isEmpty && matchingProducts.isEmpty)
                       Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 40),
+                        padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 20),
                         child: Center(
-                          child: Text(
-                            'No results found for "$_searchQuery"',
-                            style: const TextStyle(color: AppColors.textSecondary),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Container(
+                                width: 64,
+                                height: 64,
+                                decoration: BoxDecoration(
+                                  color: AppColors.primary.withAlpha(20),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(Icons.search_off_rounded, size: 32, color: AppColors.primary),
+                              ),
+                              const SizedBox(height: AppSpacing.md),
+                              Text(
+                                'No matches for "$_searchQuery"',
+                                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                                textAlign: TextAlign.center,
+                              ),
+                              const SizedBox(height: AppSpacing.xs),
+                              const Text(
+                                'Try searching for "Karahi", "Chapli", "Shinwari", or browse popular categories below.',
+                                style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
+                                textAlign: TextAlign.center,
+                              ),
+                              const SizedBox(height: AppSpacing.lg),
+                              Wrap(
+                                spacing: 8,
+                                runSpacing: 8,
+                                alignment: WrapAlignment.center,
+                                children: ['Food & Dining', 'Grocery', 'Pharmacy', 'Sweets'].map((cat) {
+                                  return ActionChip(
+                                    label: Text(cat, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+                                    backgroundColor: Colors.white,
+                                    side: const BorderSide(color: AppColors.borderLight),
+                                    onPressed: () {
+                                      setState(() {
+                                        _searchQuery = cat;
+                                      });
+                                    },
+                                  );
+                                }).toList(),
+                              ),
+                            ],
                           ),
                         ),
                       ),
@@ -951,60 +991,136 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
   void _showCartOverview(BuildContext context) {
     showModalBottomSheet<void>(
       context: context,
+      backgroundColor: Colors.transparent,
       builder: (ctx) {
         return Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          ),
           padding: const EdgeInsets.all(AppSpacing.lg),
           child: SafeArea(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  'Your Cart',
-                  style: AppTypography.headline(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: AppSpacing.md),
-                const ListTile(
-                  leading: CircleAvatar(
-                    backgroundColor: AppColors.primaryLight,
-                    child: Text('1x', style: TextStyle(color: AppColors.primaryDark)),
-                  ),
-                  title: Text('Shinwari Mutton Karahi (Full KG)'),
-                  trailing: Text('PKR 2,150', style: TextStyle(fontWeight: FontWeight.bold)),
-                ),
-                const Divider(),
-                const Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text('Total Estimated:', style: TextStyle(fontWeight: FontWeight.bold)),
-                    Text(
-                      'PKR 2,150',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.primary),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: AppSpacing.md),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      Navigator.pop(ctx);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Order dispatched to Batkhela riders!'),
-                          backgroundColor: AppColors.primary,
+            child: _cartItemCount == 0
+                ? Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: 48,
+                        height: 4,
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade300,
+                          borderRadius: BorderRadius.circular(2),
                         ),
-                      );
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary,
-                      foregroundColor: Colors.white,
-                      shape: const RoundedRectangleBorder(borderRadius: AppRadius.roundedFull),
-                    ),
-                    child: const Text('Confirm Order'),
+                      ),
+                      const SizedBox(height: AppSpacing.lg),
+                      Container(
+                        width: 72,
+                        height: 72,
+                        decoration: BoxDecoration(
+                          color: AppColors.primary.withAlpha(18),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(Icons.shopping_bag_outlined, size: 36, color: AppColors.primary),
+                      ),
+                      const SizedBox(height: AppSpacing.md),
+                      Text(
+                        'Your Cart is Empty',
+                        style: AppTypography.headline(fontSize: 18, fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: AppSpacing.xs),
+                      const Text(
+                        'Browse local Batkhela stores & restaurants to add delicious meals or fresh groceries.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
+                      ),
+                      const SizedBox(height: AppSpacing.xl),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: () {
+                            Navigator.pop(ctx);
+                            setState(() {
+                              _currentNavIndex = 0;
+                            });
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primary,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            shape: const RoundedRectangleBorder(borderRadius: AppRadius.roundedFull),
+                          ),
+                          child: const Text('Explore Stores', style: TextStyle(fontWeight: FontWeight.bold)),
+                        ),
+                      ),
+                    ],
+                  )
+                : Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: 48,
+                        height: 4,
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade300,
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                      const SizedBox(height: AppSpacing.md),
+                      Text(
+                        'Your Cart ($_cartItemCount items)',
+                        style: AppTypography.headline(fontSize: 18, fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: AppSpacing.md),
+                      ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        leading: CircleAvatar(
+                          backgroundColor: AppColors.primary.withAlpha(25),
+                          child: Text('${_cartItemCount}x', style: const TextStyle(color: AppColors.primaryDark, fontWeight: FontWeight.bold)),
+                        ),
+                        title: const Text('Shinwari Mutton Karahi (Special)', style: TextStyle(fontWeight: FontWeight.w600)),
+                        subtitle: const Text('Batkhela Main Bazaar branch'),
+                        trailing: Text('PKR ${(2150 * _cartItemCount).toStringAsFixed(0)}', style: const TextStyle(fontWeight: FontWeight.bold)),
+                      ),
+                      const Divider(),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text('Total Estimated:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                          Text(
+                            'PKR ${(2150 * _cartItemCount).toStringAsFixed(0)}',
+                            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.primary),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: AppSpacing.lg),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: () {
+                            Navigator.pop(ctx);
+                            setState(() {
+                              _cartItemCount = 0;
+                              _currentNavIndex = 3; // Navigate to Orders tab
+                            });
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Order placed successfully! Dispatched to nearby Batkhela riders.'),
+                                backgroundColor: AppColors.primary,
+                                duration: Duration(seconds: 3),
+                              ),
+                            );
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primary,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            shape: const RoundedRectangleBorder(borderRadius: AppRadius.roundedFull),
+                          ),
+                          child: const Text('Confirm & Place Order', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-              ],
-            ),
           ),
         );
       },

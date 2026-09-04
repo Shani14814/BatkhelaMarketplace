@@ -195,30 +195,70 @@ A standalone Android APK is generated and available for direct installation:
 
 ---
 
-## 📋 11. Judge Quick Test Guide
+## 📋 11. Hackathon Demo & Evaluator Guide (5-Minute Tour)
 
-Judges can evaluate the entire marketplace workflow in **under 3 minutes**:
+Judges and evaluators can experience the full end-to-end multi-role lifecycle in under **5 minutes** using either the Android APK or Flutter Web/Desktop interfaces:
 
-1. **Open the Mobile App:**
-   * On launch, tap **"Switch to Demo Testing Mode (Role Selector)"**.
-2. **Test as Customer:**
-   * Tap **"Customer (Bazaar Shopper)"**.
-   * Browse products, tap **"Add to Cart"**, and confirm checkout.
-   * Go to **"Orders"** tab $\rightarrow$ Tap **"Track Live Rider & Route"** to see live route navigation.
-3. **Test as Vendor:**
-   * Switch role to **"Vendor (Store Manager)"**.
-   * View live KPIs, toggle store open/closed, manage product catalog stock, and review incoming orders.
-4. **Test as Rider:**
-   * Switch role to **"Rider (Delivery Fleet)"**.
-   * Toggle **Online Radar** $\rightarrow$ Observe live GPS telemetry broadcasting.
-   * Open the active delivery and progress through the 5 lifecycle stages (*Arrived at Pickup $\rightarrow$ Picked Up $\rightarrow$ Delivered*).
-5. **Test Super Admin (Web):**
-   * Launch `apps/admin_web` in Chrome $\rightarrow$ Tap **"1-Click Super Admin Demo Login"**.
-   * Explore the 9 operations management domains including Vendor KYC approvals and multi-city geographic expansion toggles.
+```
+Step 1: Customer Order (Mobile)
+  └─► Browse Shinwari Mutton Karahi / Fresh Grocery
+  └─► Add to cart & checkout with COD
+  └─► Receive instant notification & view live GPS route tracking
+
+Step 2: Merchant Fulfillment (Mobile)
+  └─► Switch role to Vendor (Shinwari Tikka Store Manager)
+  └─► Receive real-time order chime & operational notification
+  └─► Accept Order ──► Start Cooking ──► Mark Ready for Rider
+
+Step 3: Rider Dispatch & Telemetry (Mobile)
+  └─► Switch role to Rider (Delivery Partner)
+  └─► Toggle Radar Online (GPS heartbeat & battery-smart telemetry)
+  └─► Accept Job Offer ──► Arrive at Store ──► Pick Up ──► Deliver with proof
+
+Step 4: Super Admin Control Center (Web / Chrome)
+  └─► 1-Click Super Admin Login on Admin Web (http://127.0.0.1:8080)
+  └─► Review 9 Operational Domains: Live GMV, Vendor KYC, Rider Onboarding
+  └─► Broadcast platform-wide push announcements & toggle multi-city expansion
+```
+
+### 🛍️ 1. Customer Experience
+- **1-Click Launch:** On mobile startup, select **"Customer (Bazaar Shopper)"**.
+- **Explore Local Bazaar:** Browse top-rated merchants (*Shinwari Tikka, Malakand Sweets, Swat Valley Mart*).
+- **Search & Category Chips:** Search "Karahi" or tap category filters with instant feedback.
+- **Cart & Order Placement:** Tap cart icon, review itemized order summary, and tap **"Confirm & Place Order"**.
+- **Live GPS Tracking:** Navigate to the **Orders** tab $\rightarrow$ tap **"Track Live Rider & Route"** to preview real-time telemetry along Batkhela Main GT Road.
+
+### 🏪 2. Vendor / Merchant Portal
+- **Role Switch:** Tap profile avatar $\rightarrow$ select **"Vendor (Store Manager)"**.
+- **Live Store KPIs:** View daily revenue, order volume, and store open/closed toggle.
+- **Kitchen Order Pipeline:** Go to **"Orders"** tab $\rightarrow$ transition order stages (*New Pending $\rightarrow$ Accept $\rightarrow$ Start Cooking $\rightarrow$ Mark Ready for Rider*) with instant confirmation feedback.
+- **Catalog & Inventory:** Open **"Product Inventory"** $\rightarrow$ add new dishes or toggle in-stock availability.
+
+### 🛵 3. Rider Radar & Delivery Execution
+- **Role Switch:** Select **"Rider (Delivery Fleet)"**.
+- **GPS Dispatch Radar:** Toggle **"Online Radar"** to broadcast location telemetry along Batkhela waypoints.
+- **Job Offers Queue:** Inspect incoming delivery requests with guaranteed payout and distance.
+- **5-Stage Delivery State Machine:** Progress the active order through:
+  $$\text{Accepted} \longrightarrow \text{Arrived at Store} \longrightarrow \text{Picked Up} \longrightarrow \text{Out for Delivery} \longrightarrow \text{Delivered}$$
+- **Earnings Hub:** View transparent fee calculations, mileage bonuses, and wallet payout balance.
+
+### 🛡️ 4. Super Admin Web Control Center (`apps/admin_web`)
+- **Access:** Run `flutter run -d chrome` in `apps/admin_web` (or open local preview on port 8080).
+- **1-Click Demo Login:** Tap **"1-Click Super Admin Demo Login"**.
+- **9 Operations Domains:**
+  1. **Executive Overview:** Platform GMV, orders velocity, active riders on radar.
+  2. **Vendor Management & KYC:** Approve/reject merchant registration documents.
+  3. **Rider Fleet Verification:** Review driver CNIC, driving license, and vehicle status.
+  4. **Live Order Surveillance:** Global real-time audit trail of all district orders.
+  5. **Taxonomy & Category Tree:** Manage hierarchical categories and icons.
+  6. **Promotions & Banners:** Deploy promotional banners for Eid and regional festivals.
+  7. **District Expansion:** 1-Click activation of adjacent zones (*Batkhela, Thana, Chakdara, Timergara, Dargai*).
+  8. **Notification & Alert Broadcast:** Trigger role-based operational alerts and emergency dispatches.
+  9. **Platform Financials:** Configure commission splits and base delivery rates.
 
 ---
 
 ## 📄 License & Attribution
 
-Developed for the **Alibaba Cloud AI Hackathon Pakistan 2026** by team *Batkhela Marketplace*.
+Developed for the **Alibaba Cloud AI Hackathon Pakistan 2026** by team *Batkhela Marketplace*.  
 Distributed under the MIT License.

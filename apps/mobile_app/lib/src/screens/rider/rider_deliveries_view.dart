@@ -44,9 +44,9 @@ class RiderDeliveriesView extends StatelessWidget {
             ),
             body: TabBarView(
               children: [
-                _buildDeliveriesList(context, offered, isOffersTab: true),
-                _buildDeliveriesList(context, active),
-                _buildDeliveriesList(context, completed),
+                _buildDeliveriesList(context, offered, tabType: 0),
+                _buildDeliveriesList(context, active, tabType: 1),
+                _buildDeliveriesList(context, completed, tabType: 2),
               ],
             ),
           ),
@@ -55,23 +55,60 @@ class RiderDeliveriesView extends StatelessWidget {
     );
   }
 
-  Widget _buildDeliveriesList(BuildContext context, List<RiderDeliveryAssignment> list, {bool isOffersTab = false}) {
+  Widget _buildDeliveriesList(BuildContext context, List<RiderDeliveryAssignment> list, {int tabType = 0}) {
+    final isOffersTab = tabType == 0;
     if (list.isEmpty) {
+      IconData emptyIcon;
+      Color iconColor;
+      String title;
+      String subtitle;
+
+      if (tabType == 0) {
+        emptyIcon = Icons.radar;
+        iconColor = AppColors.coral;
+        title = 'No Nearby Dispatch Broadcasts';
+        subtitle = 'Stay online with GPS enabled. New delivery requests from Batkhela stores will appear here in real-time.';
+      } else if (tabType == 1) {
+        emptyIcon = Icons.two_wheeler_outlined;
+        iconColor = AppColors.primary;
+        title = 'No Active In-Flight Deliveries';
+        subtitle = 'Check the Job Offers tab to accept available orders and start your route to the merchant.';
+      } else {
+        emptyIcon = Icons.task_alt_outlined;
+        iconColor = AppColors.success;
+        title = 'No Completed Trips Yet';
+        subtitle = 'Completed delivery routes and accumulated payout earnings will be recorded here.';
+      }
+
       return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              isOffersTab ? Icons.radar_outlined : Icons.inbox_outlined,
-              size: 64,
-              color: Colors.grey.shade400,
-            ),
-            const SizedBox(height: 12),
-            Text(
-              isOffersTab ? 'No new delivery offers at this moment' : 'No deliveries in this section',
-              style: TextStyle(color: Colors.grey.shade600, fontSize: 15),
-            ),
-          ],
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 32),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                width: 72,
+                height: 72,
+                decoration: BoxDecoration(
+                  color: iconColor.withAlpha(20),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(emptyIcon, size: 36, color: iconColor),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                title,
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppColors.textPrimary),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 6),
+              Text(
+                subtitle,
+                style: TextStyle(color: Colors.grey.shade600, fontSize: 13, height: 1.3),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
         ),
       );
     }

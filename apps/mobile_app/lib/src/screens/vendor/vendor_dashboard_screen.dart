@@ -509,32 +509,50 @@ class _VendorDashboardScreenState extends State<VendorDashboardScreen> {
         ),
         body: TabBarView(
           children: [
-            _buildOrdersFilteredList(context, ctrl.orders),
-            _buildOrdersFilteredList(context, ctrl.orders.where((o) => o.status == OrderStatus.placed).toList()),
+            _buildOrdersFilteredList(context, ctrl.orders, stageName: 'All Orders'),
+            _buildOrdersFilteredList(context, ctrl.orders.where((o) => o.status == OrderStatus.placed).toList(), stageName: 'New Pending'),
             _buildOrdersFilteredList(
-                context, ctrl.orders.where((o) => o.status == OrderStatus.accepted || o.status == OrderStatus.preparing).toList()),
-            _buildOrdersFilteredList(context, ctrl.orders.where((o) => o.status == OrderStatus.readyForPickup).toList()),
+                context, ctrl.orders.where((o) => o.status == OrderStatus.accepted || o.status == OrderStatus.preparing).toList(), stageName: 'Preparing / Cooking'),
+            _buildOrdersFilteredList(context, ctrl.orders.where((o) => o.status == OrderStatus.readyForPickup).toList(), stageName: 'Ready for Rider'),
             _buildOrdersFilteredList(
-                context, ctrl.orders.where((o) => o.status == OrderStatus.delivered || o.status == OrderStatus.cancelled).toList()),
+                context, ctrl.orders.where((o) => o.status == OrderStatus.delivered || o.status == OrderStatus.cancelled).toList(), stageName: 'Completed / Historical'),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildOrdersFilteredList(BuildContext context, List<MarketplaceOrder> list) {
+  Widget _buildOrdersFilteredList(BuildContext context, List<MarketplaceOrder> list, {String stageName = 'this stage'}) {
     if (list.isEmpty) {
       return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.inbox_outlined, size: 64, color: Colors.grey.shade400),
-            const SizedBox(height: 12),
-            Text(
-              'No orders in this stage',
-              style: TextStyle(color: Colors.grey.shade600, fontSize: 16, fontWeight: FontWeight.w500),
-            ),
-          ],
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 32),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                width: 68,
+                height: 68,
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withAlpha(20),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.receipt_long_outlined, size: 34, color: AppColors.primary),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'No orders in $stageName',
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppColors.textPrimary),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 6),
+              Text(
+                'Incoming customer orders will appear here automatically with instant operational alerts.',
+                style: TextStyle(color: Colors.grey.shade600, fontSize: 13, height: 1.3),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
         ),
       );
     }

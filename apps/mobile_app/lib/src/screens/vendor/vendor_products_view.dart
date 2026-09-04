@@ -119,16 +119,54 @@ class _VendorProductsViewState extends State<VendorProductsView> {
               Expanded(
                 child: filteredProducts.isEmpty
                     ? Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.inventory_2_outlined, size: 64, color: Colors.grey.shade400),
-                            const SizedBox(height: 12),
-                            Text(
-                              'No products found',
-                              style: TextStyle(color: Colors.grey.shade600, fontSize: 16, fontWeight: FontWeight.w500),
-                            ),
-                          ],
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 32),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Container(
+                                width: 68,
+                                height: 68,
+                                decoration: BoxDecoration(
+                                  color: AppColors.primary.withAlpha(20),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Icon(
+                                  _searchQuery.isNotEmpty ? Icons.search_off_rounded : Icons.inventory_2_outlined,
+                                  size: 34,
+                                  color: AppColors.primary,
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                _searchQuery.isNotEmpty
+                                    ? 'No items match "$_searchQuery"'
+                                    : 'No items in this category',
+                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppColors.textPrimary),
+                                textAlign: TextAlign.center,
+                              ),
+                              const SizedBox(height: 6),
+                              Text(
+                                _searchQuery.isNotEmpty
+                                    ? 'Try checking for typos or searching a different term.'
+                                    : 'Tap the button below to add new dishes, grocery items, or products.',
+                                style: TextStyle(color: Colors.grey.shade600, fontSize: 13, height: 1.3),
+                                textAlign: TextAlign.center,
+                              ),
+                              if (_searchQuery.isNotEmpty) ...[
+                                const SizedBox(height: 16),
+                                OutlinedButton.icon(
+                                  onPressed: () => setState(() => _searchQuery = ''),
+                                  icon: const Icon(Icons.clear, size: 16),
+                                  label: const Text('Clear Search Filter'),
+                                  style: OutlinedButton.styleFrom(
+                                    foregroundColor: AppColors.primary,
+                                    side: const BorderSide(color: AppColors.primary),
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
                         ),
                       )
                     : ListView.separated(

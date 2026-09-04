@@ -26,6 +26,7 @@ export 'src/models/rider_profile.dart';
 export 'src/models/platform_setting.dart';
 export 'src/models/storage_domain.dart';
 export 'src/models/location_domain.dart';
+export 'src/models/notification_domain.dart';
 
 // Services & Repositories
 export 'src/services/supabase_service.dart';
@@ -38,6 +39,8 @@ export 'src/services/realtime_subscription_manager.dart';
 export 'src/services/location/location_service.dart';
 export 'src/services/location/demo_location_service.dart';
 export 'src/services/location/rider_location_tracker.dart';
+export 'src/services/notification/push_notification_adapter.dart';
+export 'src/services/notification/notification_controller.dart';
 
 export 'src/repositories/customer_repository.dart';
 export 'src/repositories/vendor_repository.dart';
@@ -48,6 +51,7 @@ export 'src/repositories/delivery_repository.dart';
 export 'src/repositories/category_repository.dart';
 export 'src/repositories/admin_repository.dart';
 export 'src/repositories/storage_repository.dart';
+export 'src/repositories/notification_repository.dart';
 
 export 'src/repositories/demo/demo_customer_repository.dart';
 export 'src/repositories/demo/demo_vendor_repository.dart';
@@ -58,6 +62,7 @@ export 'src/repositories/demo/demo_delivery_repository.dart';
 export 'src/repositories/demo/demo_category_repository.dart';
 export 'src/repositories/demo/demo_admin_repository.dart';
 export 'src/repositories/demo/demo_storage_repository.dart';
+export 'src/repositories/demo/demo_notification_repository.dart';
 
 export 'src/repositories/supabase/supabase_customer_repository.dart';
 export 'src/repositories/supabase/supabase_vendor_repository.dart';
@@ -68,6 +73,7 @@ export 'src/repositories/supabase/supabase_delivery_repository.dart';
 export 'src/repositories/supabase/supabase_category_repository.dart';
 export 'src/repositories/supabase/supabase_admin_repository.dart';
 export 'src/repositories/supabase/supabase_storage_repository.dart';
+export 'src/repositories/supabase/supabase_notification_repository.dart';
 
 // Shared UI Components (Google Stitch System)
 export 'src/components/marketplace_hero_banner.dart';

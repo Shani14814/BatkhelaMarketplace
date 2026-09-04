@@ -15,6 +15,15 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
   String _selectedStatusFilter = 'All';
 
   @override
+  void initState() {
+    super.initState();
+    MarketplaceDataService.instance.notificationController.initSession(
+      userId: 'ADMIN-ROOT-001',
+      role: 'admin',
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
     final isDesktop = MediaQuery.of(context).size.width >= 1024;
 
@@ -231,6 +240,50 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
             ),
           ),
           const SizedBox(width: 16),
+          // Operational Notifications Bell
+          StreamBuilder<int>(
+            stream: MarketplaceDataService.instance.notificationController.unreadCountStream,
+            initialData: MarketplaceDataService.instance.notificationController.currentUnreadCount,
+            builder: (context, snapshot) {
+              final unread = snapshot.data ?? 0;
+              return Stack(
+                alignment: Alignment.center,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.notifications_outlined, color: AppColors.textPrimary),
+                    tooltip: 'Platform Operational Alerts',
+                    onPressed: () => _showAdminNotificationsDialog(context),
+                  ),
+                  if (unread > 0)
+                    Positioned(
+                      top: 8,
+                      right: 8,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: AppColors.coral,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        constraints: const BoxConstraints(
+                          minWidth: 16,
+                          minHeight: 16,
+                        ),
+                        child: Text(
+                          unread > 99 ? '99+' : '$unread',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ),
+                ],
+              );
+            },
+          ),
+          const SizedBox(width: 12),
           // Live Node Telemetry Indicator
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -1225,6 +1278,180 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
           fontSize: 13,
         ),
       ),
+    );
+  }
+
+  void _showAdminNotificationsDialog(BuildContext context) {
+    showDialog<void>(
+      context: context,
+      builder: (dialogCtx) {
+        return Dialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          child: Container(
+            width: 580,
+            height: 600,
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Header
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withAlpha(20),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: const Icon(Icons.notifications_active_outlined, color: AppColors.primary, size: 22),
+                    ),
+                    const SizedBox(width: 12),
+                    const Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Platform Operational Alerts',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.textPrimary,
+                            ),
+                          ),
+                          Text(
+                            'Real-time system telemetry and incident stream',
+                            style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                          ),
+                        ],
+                      ),
+                    ),
+                    TextButton.icon(
+                      onPressed: () async {
+                        await MarketplaceDataService.instance.notificationRepo.markAllAsRead(
+                          userId: 'ADMIN-ROOT-001',
+                        );
+                      },
+                      icon: const Icon(Icons.done_all, size: 16),
+                      label: const Text('Mark all read', style: TextStyle(fontSize: 12)),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.close),
+                      onPressed: () => Navigator.pop(dialogCtx),
+                    ),
+                  ],
+                ),
+                const Divider(height: 24),
+
+                // Notifications List
+                Expanded(
+                  child: StreamBuilder<List<MarketplaceNotification>>(
+                    stream: MarketplaceDataService.instance.notificationRepo.streamNotifications(
+                      userId: 'ADMIN-ROOT-001',
+                      role: 'admin',
+                    ),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting && !snapshot.hasData) {
+                        return const Center(child: CircularProgressIndicator());
+                      }
+                      final list = snapshot.data ?? [];
+                      if (list.isEmpty) {
+                        return const Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.notifications_none, size: 48, color: AppColors.textTertiary),
+                              SizedBox(height: 12),
+                              Text(
+                                'No operational alerts',
+                                style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textSecondary),
+                              ),
+                            ],
+                          ),
+                        );
+                      }
+
+                      return ListView.separated(
+                        itemCount: list.length,
+                        separatorBuilder: (_, _) => const Divider(height: 1),
+                        itemBuilder: (context, index) {
+                          final item = list[index];
+                          final isUnread = !item.isRead;
+
+                          Color priorityColor;
+                          IconData priorityIcon;
+                          switch (item.priority) {
+                            case NotificationPriority.urgent:
+                              priorityColor = AppColors.coral;
+                              priorityIcon = Icons.error_outline;
+                              break;
+                            case NotificationPriority.high:
+                              priorityColor = Colors.orange;
+                              priorityIcon = Icons.warning_amber_rounded;
+                              break;
+                            case NotificationPriority.normal:
+                              priorityColor = AppColors.primary;
+                              priorityIcon = Icons.info_outline;
+                              break;
+                            case NotificationPriority.low:
+                              priorityColor = AppColors.textSecondary;
+                              priorityIcon = Icons.notifications_none;
+                              break;
+                          }
+
+                          return Container(
+                            color: isUnread ? AppColors.primary.withAlpha(10) : Colors.transparent,
+                            child: ListTile(
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                              leading: Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: priorityColor.withAlpha(25),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Icon(priorityIcon, color: priorityColor, size: 20),
+                              ),
+                              title: Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      item.title,
+                                      style: TextStyle(
+                                        fontWeight: isUnread ? FontWeight.bold : FontWeight.w600,
+                                        fontSize: 14,
+                                        color: AppColors.textPrimary,
+                                      ),
+                                    ),
+                                  ),
+                                  Text(
+                                    '${item.createdAt.hour.toString().padLeft(2, '0')}:${item.createdAt.minute.toString().padLeft(2, '0')}',
+                                    style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                                  ),
+                                ],
+                              ),
+                              subtitle: Padding(
+                                padding: const EdgeInsets.only(top: 4),
+                                child: Text(
+                                  item.body,
+                                  style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                                ),
+                              ),
+                              onTap: () async {
+                                if (isUnread) {
+                                  await MarketplaceDataService.instance.notificationRepo.markAsRead(item.id);
+                                }
+                              },
+                            ),
+                          );
+                        },
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }

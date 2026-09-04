@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:marketplace_core/marketplace_core.dart';
 import '../../data/rider_demo_data.dart';
+import '../../widgets/notification_inbox_sheet.dart';
 import 'rider_deliveries_view.dart';
 import 'rider_delivery_detail_screen.dart';
 import 'rider_earnings_view.dart';
@@ -22,6 +23,10 @@ class _RiderHomeScreenState extends State<RiderHomeScreen> {
   @override
   void initState() {
     super.initState();
+    MarketplaceDataService.instance.notificationController.initSession(
+      userId: 'usr_rider_1',
+      role: 'rider',
+    );
     _initRiderTracking();
   }
 
@@ -171,6 +176,54 @@ class _RiderHomeScreenState extends State<RiderHomeScreen> {
           ],
         ),
         actions: [
+          StreamBuilder<int>(
+            stream: MarketplaceDataService.instance.notificationController.unreadCountStream,
+            initialData: MarketplaceDataService.instance.notificationController.currentUnreadCount,
+            builder: (context, snapshot) {
+              final unread = snapshot.data ?? 0;
+              return Stack(
+                alignment: Alignment.center,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.notifications_outlined, color: AppColors.textPrimary),
+                    tooltip: 'Notifications',
+                    onPressed: () {
+                      NotificationInboxSheet.show(
+                        context,
+                        userId: 'usr_rider_1',
+                        role: 'rider',
+                      );
+                    },
+                  ),
+                  if (unread > 0)
+                    Positioned(
+                      top: 8,
+                      right: 8,
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: const BoxDecoration(
+                          color: AppColors.coral,
+                          shape: BoxShape.circle,
+                        ),
+                        constraints: const BoxConstraints(
+                          minWidth: 16,
+                          minHeight: 16,
+                        ),
+                        child: Text(
+                          unread > 9 ? '9+' : '$unread',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 9,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ),
+                ],
+              );
+            },
+          ),
           Padding(
             padding: const EdgeInsets.only(right: 12.0),
             child: Switch(

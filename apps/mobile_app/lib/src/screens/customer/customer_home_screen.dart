@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:marketplace_core/marketplace_core.dart';
 import '../../data/customer_demo_data.dart';
 import '../../widgets/route_navigation_preview.dart';
+import '../../widgets/notification_inbox_sheet.dart';
 import 'store_detail_screen.dart';
 
 /// Customer Marketplace Main Screen featuring Stitch Bottom Navigation & 5 Core Views
@@ -18,6 +19,15 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
   String _currentAddress = CustomerDemoData.activeDeliveryAddress;
   int _cartItemCount = 1;
   String _searchQuery = '';
+
+  @override
+  void initState() {
+    super.initState();
+    MarketplaceDataService.instance.notificationController.initSession(
+      userId: 'usr_customer_1',
+      role: 'customer',
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -141,6 +151,49 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
                     ),
                   ),
                 ),
+              ),
+              StreamBuilder<int>(
+                stream: MarketplaceDataService.instance.notificationController.unreadCountStream,
+                initialData: MarketplaceDataService.instance.notificationController.currentUnreadCount,
+                builder: (context, snapshot) {
+                  final unreadCount = snapshot.data ?? 0;
+                  return Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.notifications_outlined, color: AppColors.textPrimary),
+                        onPressed: () => NotificationInboxSheet.show(
+                          context,
+                          userId: 'usr_customer_1',
+                          role: 'customer',
+                        ),
+                      ),
+                      if (unreadCount > 0)
+                        Positioned(
+                          right: 6,
+                          top: 6,
+                          child: Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: const BoxDecoration(
+                              color: AppColors.primary,
+                              shape: BoxShape.circle,
+                            ),
+                            constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
+                            alignment: Alignment.center,
+                            child: Text(
+                              '$unreadCount',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 9,
+                                fontWeight: FontWeight.bold,
+                                height: 1,
+                              ),
+                            ),
+                          ),
+                        ),
+                    ],
+                  );
+                },
               ),
               Stack(
                 clipBehavior: Clip.none,

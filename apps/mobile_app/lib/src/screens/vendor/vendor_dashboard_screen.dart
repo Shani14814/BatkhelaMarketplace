@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:marketplace_core/marketplace_core.dart';
 import '../../data/vendor_demo_data.dart';
+import '../../widgets/notification_inbox_sheet.dart';
 import 'vendor_order_detail_screen.dart';
 import 'vendor_products_view.dart';
 import 'vendor_business_view.dart';
@@ -15,6 +16,15 @@ class VendorDashboardScreen extends StatefulWidget {
 
 class _VendorDashboardScreenState extends State<VendorDashboardScreen> {
   int _currentIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    MarketplaceDataService.instance.notificationController.initSession(
+      userId: 'usr_vendor_1',
+      role: 'vendor',
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -142,6 +152,49 @@ class _VendorDashboardScreenState extends State<VendorDashboardScreen> {
           ],
         ),
         actions: [
+          StreamBuilder<int>(
+            stream: MarketplaceDataService.instance.notificationController.unreadCountStream,
+            initialData: MarketplaceDataService.instance.notificationController.currentUnreadCount,
+            builder: (context, snapshot) {
+              final unreadCount = snapshot.data ?? 0;
+              return Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.notifications_outlined, color: AppColors.textPrimary),
+                    onPressed: () => NotificationInboxSheet.show(
+                      context,
+                      userId: 'usr_vendor_1',
+                      role: 'vendor',
+                    ),
+                  ),
+                  if (unreadCount > 0)
+                    Positioned(
+                      right: 6,
+                      top: 6,
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: const BoxDecoration(
+                          color: AppColors.primary,
+                          shape: BoxShape.circle,
+                        ),
+                        constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
+                        alignment: Alignment.center,
+                        child: Text(
+                          '$unreadCount',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 9,
+                            fontWeight: FontWeight.bold,
+                            height: 1,
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              );
+            },
+          ),
           Padding(
             padding: const EdgeInsets.only(right: 12.0),
             child: Row(

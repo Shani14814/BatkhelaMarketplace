@@ -86,5 +86,24 @@ void main() {
       expect(RouteGuard.canAccessRoute(path: AppRoutes.vendorDashboard, userRole: UserRole.superAdmin), isTrue);
       expect(RouteGuard.canAccessRoute(path: AppRoutes.riderRadar, userRole: UserRole.superAdmin), isTrue);
     });
+
+    test('Mode Selection and Demo Isolation', () {
+      // Demo initialization sets isDemoMode true
+      AuthService.instance.initialize(repository: repo, isDemoMode: true);
+      expect(AuthService.instance.isDemoMode, isTrue);
+
+      // MarketplaceDataService reflects demo vs supabase mode
+      MarketplaceDataService.instance.initialize(isDemoMode: true);
+      expect(MarketplaceDataService.instance.isDemoMode, isTrue);
+      expect(MarketplaceDataService.instance.customerRepo, isA<DemoCustomerRepository>());
+
+      MarketplaceDataService.instance.initialize(isDemoMode: false);
+      expect(MarketplaceDataService.instance.isDemoMode, isFalse);
+      expect(MarketplaceDataService.instance.customerRepo, isA<SupabaseCustomerRepository>());
+
+      // Restore demo mode for following tests
+      MarketplaceDataService.instance.initialize(isDemoMode: true);
+      expect(MarketplaceDataService.instance.isDemoMode, isTrue);
+    });
   });
 }

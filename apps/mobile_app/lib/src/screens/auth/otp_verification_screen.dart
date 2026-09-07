@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:marketplace_core/marketplace_core.dart';
 import 'auth_role_router.dart';
+import 'customer_profile_setup_screen.dart';
+import '../customer/customer_home_screen.dart';
 
 class OtpVerificationScreen extends StatefulWidget {
   final String phoneNumber;
@@ -48,7 +50,22 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
     setState(() => _isLoading = false);
 
     if (profile != null) {
-      AuthRoleRouter.navigateForRole(context, profile.role);
+      if (profile.role == UserRole.customer) {
+        if (profile.fullName == 'Batkhela Customer' || profile.fullName == 'Marketplace User' || profile.fullName == 'User' || profile.fullName.trim().isEmpty) {
+          Navigator.pushReplacement<void, void>(
+            context,
+            MaterialPageRoute<void>(builder: (context) => CustomerProfileSetupScreen(profile: profile)),
+          );
+        } else {
+          Navigator.pushAndRemoveUntil<void>(
+            context,
+            MaterialPageRoute<void>(builder: (context) => const CustomerHomeScreen()),
+            (route) => false,
+          );
+        }
+      } else {
+        AuthRoleRouter.navigateForRole(context, profile.role);
+      }
     } else {
       setState(() {
         _errorMessage = AuthService.instance.errorNotifier.value ?? 'Invalid verification code';
@@ -139,25 +156,36 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
               // OTP Code Input
               Container(
                 decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.08),
+                  color: const Color(0xFF1E293B).withValues(alpha: 0.85),
                   borderRadius: AppRadius.roundedLg,
-                  border: Border.all(color: Colors.white24),
+                  border: Border.all(color: Colors.white38, width: 1.2),
                 ),
                 child: TextField(
                   controller: _otpController,
                   keyboardType: TextInputType.number,
+                  cursorColor: AppColors.primaryLight,
                   textAlign: TextAlign.center,
                   style: const TextStyle(
                     color: Colors.white,
-                    fontSize: 24,
-                    letterSpacing: 12,
+                    fontSize: 26,
+                    letterSpacing: 14,
                     fontWeight: FontWeight.bold,
                   ),
                   decoration: const InputDecoration(
+                    filled: false,
+                    isDense: true,
                     hintText: '••••••',
-                    hintStyle: TextStyle(color: Colors.white24, letterSpacing: 8),
+                    hintStyle: TextStyle(
+                      color: Colors.white38,
+                      letterSpacing: 10,
+                      fontWeight: FontWeight.bold,
+                    ),
                     border: InputBorder.none,
-                    contentPadding: EdgeInsets.symmetric(vertical: AppSpacing.md),
+                    enabledBorder: InputBorder.none,
+                    focusedBorder: InputBorder.none,
+                    errorBorder: InputBorder.none,
+                    disabledBorder: InputBorder.none,
+                    contentPadding: EdgeInsets.symmetric(vertical: 16),
                   ),
                   onSubmitted: (_) => _handleVerifyOtp(),
                 ),

@@ -4,11 +4,13 @@ import '../theme/app_elevation.dart';
 import '../theme/app_radius.dart';
 import '../theme/app_spacing.dart';
 import '../theme/app_typography.dart';
+import 'marketplace_product_image.dart';
 
 /// Reusable Product Card for Catalog browsing and ordering.
 class ProductCatalogCard extends StatelessWidget {
   final String name;
   final String? description;
+  final String? category;
   final double price;
   final double? discountPrice;
   final String? imageUrl;
@@ -21,6 +23,7 @@ class ProductCatalogCard extends StatelessWidget {
     super.key,
     required this.name,
     this.description,
+    this.category,
     required this.price,
     this.discountPrice,
     this.imageUrl,
@@ -142,25 +145,12 @@ class ProductCatalogCard extends StatelessWidget {
                       clipBehavior: Clip.none,
                       alignment: Alignment.bottomCenter,
                       children: [
-                        Container(
+                        MarketplaceProductImage(
+                          imageUrl: imageUrl,
+                          productName: name,
+                          category: category,
                           width: 88,
                           height: 88,
-                          decoration: const BoxDecoration(
-                            borderRadius: AppRadius.roundedMd,
-                            color: AppColors.backgroundLight,
-                          ),
-                          clipBehavior: Clip.antiAlias,
-                          child: imageUrl != null && imageUrl!.isNotEmpty
-                              ? Image.network(
-                                  imageUrl!,
-                                  fit: BoxFit.cover,
-                                  loadingBuilder: (context, child, loadingProgress) {
-                                    if (loadingProgress == null) return child;
-                                    return _buildPlaceholder();
-                                  },
-                                  errorBuilder: (context, error, stackTrace) => _buildPlaceholder(),
-                                )
-                              : _buildPlaceholder(),
                         ),
                         if (!isAvailable)
                           Positioned.fill(
@@ -228,34 +218,6 @@ class ProductCatalogCard extends StatelessWidget {
               ],
             ),
           ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildPlaceholder() {
-    return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            const Color(0xFFF1F5F9),
-            AppColors.primaryLight.withAlpha(120),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-      ),
-      alignment: Alignment.center,
-      child: Container(
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          color: Colors.white.withAlpha(180),
-          shape: BoxShape.circle,
-        ),
-        child: const Icon(
-          Icons.fastfood_rounded,
-          size: 24,
-          color: AppColors.primary,
         ),
       ),
     );

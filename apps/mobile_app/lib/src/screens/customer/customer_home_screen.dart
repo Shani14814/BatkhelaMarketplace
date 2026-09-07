@@ -4,6 +4,8 @@ import '../../data/customer_demo_data.dart';
 import '../../widgets/route_navigation_preview.dart';
 import '../../widgets/notification_inbox_sheet.dart';
 import 'store_detail_screen.dart';
+import 'product_detail_sheet.dart';
+import 'cart_sheet.dart';
 
 /// Customer Marketplace Main Screen featuring Stitch Bottom Navigation & 5 Core Views
 class CustomerHomeScreen extends StatefulWidget {
@@ -17,14 +19,14 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
   int _currentNavIndex = 0;
   String _selectedCategory = 'all';
   String _currentAddress = CustomerDemoData.activeDeliveryAddress;
-  int _cartItemCount = 1;
   String _searchQuery = '';
 
   @override
   void initState() {
     super.initState();
+    final currentUserId = AuthService.instance.currentProfile?.id ?? 'usr_customer_1';
     MarketplaceDataService.instance.notificationController.initSession(
-      userId: 'usr_customer_1',
+      userId: currentUserId,
       role: 'customer',
     );
   }
@@ -37,41 +39,45 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
         bottom: false,
         child: _buildCurrentTab(),
       ),
-      bottomNavigationBar: MarketplaceBottomNav(
-        currentIndex: _currentNavIndex,
-        onDestinationSelected: (index) {
-          setState(() {
-            _currentNavIndex = index;
-          });
+      bottomNavigationBar: ValueListenableBuilder<List<CartItem>>(
+        valueListenable: CartController.instance.itemsNotifier,
+        builder: (context, items, _) {
+          return MarketplaceBottomNav(
+            currentIndex: _currentNavIndex,
+            onDestinationSelected: (index) {
+              setState(() {
+                _currentNavIndex = index;
+              });
+            },
+            destinations: const [
+              MarketplaceNavDestination(
+                icon: Icons.home_outlined,
+                activeIcon: Icons.home,
+                label: 'Home',
+              ),
+              MarketplaceNavDestination(
+                icon: Icons.grid_view_outlined,
+                activeIcon: Icons.grid_view_rounded,
+                label: 'Explore',
+              ),
+              MarketplaceNavDestination(
+                icon: Icons.search,
+                activeIcon: Icons.search_rounded,
+                label: 'Search',
+              ),
+              MarketplaceNavDestination(
+                icon: Icons.receipt_long_outlined,
+                activeIcon: Icons.receipt_long,
+                label: 'Orders',
+              ),
+              MarketplaceNavDestination(
+                icon: Icons.person_outline,
+                activeIcon: Icons.person,
+                label: 'Profile',
+              ),
+            ],
+          );
         },
-        destinations: [
-          const MarketplaceNavDestination(
-            icon: Icons.home_outlined,
-            activeIcon: Icons.home,
-            label: 'Home',
-          ),
-          const MarketplaceNavDestination(
-            icon: Icons.grid_view_outlined,
-            activeIcon: Icons.grid_view_rounded,
-            label: 'Explore',
-          ),
-          const MarketplaceNavDestination(
-            icon: Icons.search,
-            activeIcon: Icons.search_rounded,
-            label: 'Search',
-          ),
-          MarketplaceNavDestination(
-            icon: Icons.receipt_long_outlined,
-            activeIcon: Icons.receipt_long,
-            label: 'Orders',
-            badgeCount: CustomerDemoData.demoOrders.length,
-          ),
-          const MarketplaceNavDestination(
-            icon: Icons.person_outline,
-            activeIcon: Icons.person,
-            label: 'Profile',
-          ),
-        ],
       ),
     );
   }
@@ -157,6 +163,7 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
                 initialData: MarketplaceDataService.instance.notificationController.currentUnreadCount,
                 builder: (context, snapshot) {
                   final unreadCount = snapshot.data ?? 0;
+                  final userId = AuthService.instance.currentProfile?.id ?? 'usr_customer_1';
                   return Stack(
                     clipBehavior: Clip.none,
                     children: [
@@ -164,7 +171,7 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
                         icon: const Icon(Icons.notifications_outlined, color: AppColors.textPrimary),
                         onPressed: () => NotificationInboxSheet.show(
                           context,
-                          userId: 'usr_customer_1',
+                          userId: userId,
                           role: 'customer',
                         ),
                       ),
@@ -195,37 +202,43 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
                   );
                 },
               ),
-              Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.shopping_bag_outlined, color: AppColors.textPrimary),
-                    onPressed: () => _showCartOverview(context),
-                  ),
-                  if (_cartItemCount > 0)
-                    Positioned(
-                      right: 6,
-                      top: 6,
-                      child: Container(
-                        padding: const EdgeInsets.all(4),
-                        decoration: const BoxDecoration(
-                          color: AppColors.coral,
-                          shape: BoxShape.circle,
-                        ),
-                        constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
-                        alignment: Alignment.center,
-                        child: Text(
-                          '$_cartItemCount',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 9,
-                            fontWeight: FontWeight.bold,
-                            height: 1,
+              ValueListenableBuilder<List<CartItem>>(
+                valueListenable: CartController.instance.itemsNotifier,
+                builder: (context, items, _) {
+                  final count = CartController.instance.totalItemCount;
+                  return Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.shopping_bag_outlined, color: AppColors.textPrimary),
+                        onPressed: () => CartSheet.show(context),
+                      ),
+                      if (count > 0)
+                        Positioned(
+                          right: 6,
+                          top: 6,
+                          child: Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: const BoxDecoration(
+                              color: AppColors.coral,
+                              shape: BoxShape.circle,
+                            ),
+                            constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
+                            alignment: Alignment.center,
+                            child: Text(
+                              '$count',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 9,
+                                fontWeight: FontWeight.bold,
+                                height: 1,
+                              ),
+                            ),
                           ),
                         ),
-                      ),
-                    ),
-                ],
+                    ],
+                  );
+                },
               ),
             ],
           ),
@@ -406,27 +419,52 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
                 ),
                 const SizedBox(height: AppSpacing.sm),
 
-                // Featured Products List (Top 8 items)
                 ...CustomerDemoData.allFeaturedProducts.take(8).map((product) {
+                  final store = CustomerDemoData.stores.firstWhere(
+                    (s) => s.id == product.vendorId,
+                    orElse: () => CustomerDemoData.stores.first,
+                  );
+
                   return Padding(
                     padding: const EdgeInsets.only(bottom: AppSpacing.md),
                     child: ProductCatalogCard(
                       name: product.name,
                       description: product.description,
+                      category: product.category,
+                      imageUrl: product.imageUrl,
                       price: product.price,
                       discountPrice: product.discountPrice,
                       isAvailable: product.isAvailable,
+                      onTap: () => ProductDetailSheet.show(
+                        context,
+                        product: product,
+                        vendorId: store.id,
+                        vendorName: store.name,
+                      ),
                       onAdd: () {
-                        setState(() {
-                          _cartItemCount += 1;
-                        });
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('Added ${product.name} to cart'),
-                            backgroundColor: AppColors.primary,
-                            duration: const Duration(seconds: 2),
-                          ),
+                        final added = CartController.instance.addItem(
+                          product,
+                          vendorId: store.id,
+                          vendorName: store.name,
                         );
+                        if (!added) {
+                          ProductDetailSheet.show(
+                            context,
+                            product: product,
+                            vendorId: store.id,
+                            vendorName: store.name,
+                          );
+                        } else {
+                          ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Added ${product.name} to cart'),
+                              backgroundColor: AppColors.primary,
+                              duration: const Duration(seconds: 2),
+                              behavior: SnackBarBehavior.floating,
+                            ),
+                          );
+                        }
                       },
                     ),
                   );
@@ -627,24 +665,50 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
                       ),
                       const SizedBox(height: AppSpacing.sm),
                       ...matchingProducts.map((p) {
+                        final store = CustomerDemoData.stores.firstWhere(
+                          (s) => s.id == p.vendorId,
+                          orElse: () => CustomerDemoData.stores.first,
+                        );
                         return Padding(
                           padding: const EdgeInsets.only(bottom: AppSpacing.md),
                           child: ProductCatalogCard(
                             name: p.name,
                             description: p.description,
+                            category: p.category,
+                            imageUrl: p.imageUrl,
                             price: p.price,
                             discountPrice: p.discountPrice,
                             isAvailable: p.isAvailable,
+                            onTap: () => ProductDetailSheet.show(
+                              context,
+                              product: p,
+                              vendorId: store.id,
+                              vendorName: store.name,
+                            ),
                             onAdd: () {
-                              setState(() {
-                                _cartItemCount += 1;
-                              });
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text('Added ${p.name} to cart'),
-                                  backgroundColor: AppColors.primary,
-                                ),
+                              final added = CartController.instance.addItem(
+                                p,
+                                vendorId: store.id,
+                                vendorName: store.name,
                               );
+                              if (!added) {
+                                ProductDetailSheet.show(
+                                  context,
+                                  product: p,
+                                  vendorId: store.id,
+                                  vendorName: store.name,
+                                );
+                              } else {
+                                ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('Added ${p.name} to cart'),
+                                    backgroundColor: AppColors.primary,
+                                    duration: const Duration(seconds: 2),
+                                    behavior: SnackBarBehavior.floating,
+                                  ),
+                                );
+                              }
                             },
                           ),
                         );
@@ -711,6 +775,8 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
   // TAB 3: ORDERS VIEW
   // ==========================================
   Widget _buildOrdersView() {
+    final currentUserId = AuthService.instance.currentProfile?.id ?? 'usr_customer_1';
+
     return Column(
       children: [
         Container(
@@ -723,92 +789,123 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
           ),
         ),
         Expanded(
-          child: ListView.builder(
-            padding: const EdgeInsets.all(AppSpacing.md),
-            itemCount: CustomerDemoData.demoOrders.length,
-            itemBuilder: (context, index) {
-              final order = CustomerDemoData.demoOrders[index];
+          child: StreamBuilder<List<MarketplaceOrder>>(
+            stream: MarketplaceDataService.instance.customerRepo.streamCustomerOrders(currentUserId),
+            builder: (context, snapshot) {
+              final orders = (snapshot.hasData && snapshot.data!.isNotEmpty)
+                  ? snapshot.data!
+                  : CustomerDemoData.demoOrders;
 
-              return Container(
-                margin: const EdgeInsets.only(bottom: AppSpacing.md),
-                padding: const EdgeInsets.all(AppSpacing.lg),
-                decoration: const BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: AppRadius.roundedLg,
-                  boxShadow: AppElevation.softSubtle,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              if (orders.isEmpty) {
+                return Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.receipt_long_outlined, size: 64, color: Colors.grey.shade400),
+                      const SizedBox(height: AppSpacing.md),
+                      const Text(
+                        'No Orders Yet',
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                      ),
+                      const SizedBox(height: AppSpacing.xs),
+                      const Text(
+                        'Place your first order from any Batkhela store!',
+                        style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
+                      ),
+                    ],
+                  ),
+                );
+              }
+
+              return ListView.builder(
+                padding: const EdgeInsets.all(AppSpacing.md),
+                itemCount: orders.length,
+                itemBuilder: (context, index) {
+                  final order = orders[index];
+
+                  return Container(
+                    margin: const EdgeInsets.only(bottom: AppSpacing.md),
+                    padding: const EdgeInsets.all(AppSpacing.lg),
+                    decoration: const BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: AppRadius.roundedLg,
+                      boxShadow: AppElevation.softSubtle,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          'Order #${order.orderNumber ?? order.id}',
-                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-                        ),
-                        MarketplaceStatusBadge.fromOrderStatus(order.status),
-                      ],
-                    ),
-                    const SizedBox(height: AppSpacing.xs),
-                    Text(
-                      'Delivering to: ${order.deliveryAddress}',
-                      style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
-                    ),
-                    const Divider(height: 20),
-                    ...order.items.map((item) {
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 2),
-                        child: Row(
+                        Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              '${item.quantity}x ${item.productName}',
-                              style: const TextStyle(fontSize: 13),
+                              'Order #${order.orderNumber ?? order.id}',
+                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
                             ),
+                            MarketplaceStatusBadge.fromOrderStatus(order.status),
+                          ],
+                        ),
+                        const SizedBox(height: AppSpacing.xs),
+                        Text(
+                          'Delivering to: ${order.deliveryAddress}',
+                          style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                        ),
+                        const Divider(height: 20),
+                        ...order.items.map((item) {
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 2),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  '${item.quantity}x ${item.productName}',
+                                  style: const TextStyle(fontSize: 13),
+                                ),
+                                Text(
+                                  'PKR ${item.totalPrice.toStringAsFixed(0)}',
+                                  style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+                                ),
+                              ],
+                            ),
+                          );
+                        }),
+                        const Divider(height: 20),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text('Total Amount:', style: TextStyle(fontWeight: FontWeight.bold)),
                             Text(
-                              'PKR ${item.totalPrice.toStringAsFixed(0)}',
-                              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+                              'PKR ${order.totalAmount.toStringAsFixed(0)}',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                                color: AppColors.primary,
+                              ),
                             ),
                           ],
                         ),
-                      );
-                    }),
-                    const Divider(height: 20),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text('Total Amount:', style: TextStyle(fontWeight: FontWeight.bold)),
-                        Text(
-                          'PKR ${order.totalAmount.toStringAsFixed(0)}',
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                            color: AppColors.primary,
+                        if (order.status == OrderStatus.outForDelivery ||
+                            order.status == OrderStatus.preparing ||
+                            order.status == OrderStatus.accepted ||
+                            order.status == OrderStatus.placed) ...[
+                          const SizedBox(height: AppSpacing.sm),
+                          SizedBox(
+                            width: double.infinity,
+                            child: OutlinedButton.icon(
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: AppColors.primary,
+                                side: const BorderSide(color: AppColors.primary),
+                                shape: const RoundedRectangleBorder(borderRadius: AppRadius.roundedMd),
+                              ),
+                              onPressed: () => _showLiveTrackingSheet(context, order),
+                              icon: const Icon(Icons.location_on_outlined, size: 16),
+                              label: const Text('Track Live Rider & Route', style: TextStyle(fontWeight: FontWeight.bold)),
+                            ),
                           ),
-                        ),
+                        ],
                       ],
                     ),
-                    if (order.status == OrderStatus.outForDelivery ||
-                        order.status == OrderStatus.preparing ||
-                        order.status == OrderStatus.accepted) ...[
-                      const SizedBox(height: AppSpacing.sm),
-                      SizedBox(
-                        width: double.infinity,
-                        child: OutlinedButton.icon(
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: AppColors.primary,
-                            side: const BorderSide(color: AppColors.primary),
-                            shape: const RoundedRectangleBorder(borderRadius: AppRadius.roundedMd),
-                          ),
-                          onPressed: () => _showLiveTrackingSheet(context, order),
-                          icon: const Icon(Icons.location_on_outlined, size: 16),
-                          label: const Text('Track Live Rider & Route', style: TextStyle(fontWeight: FontWeight.bold)),
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
+                  );
+                },
               );
             },
           ),
@@ -821,6 +918,10 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
   // TAB 4: PROFILE VIEW
   // ==========================================
   Widget _buildProfileView() {
+    final profile = AuthService.instance.currentProfile;
+    final displayName = profile?.fullName ?? 'Batkhela Customer';
+    final displayPhone = profile?.phone.isNotEmpty == true ? profile!.phone : '+92 345 0000000';
+
     return Column(
       children: [
         Container(
@@ -844,26 +945,26 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
                   borderRadius: AppRadius.roundedLg,
                   boxShadow: AppElevation.softSubtle,
                 ),
-                child: const Row(
+                child: Row(
                   children: [
-                    CircleAvatar(
+                    const CircleAvatar(
                       radius: 28,
                       backgroundColor: AppColors.primaryLight,
                       child: Icon(Icons.person, size: 32, color: AppColors.primary),
                     ),
-                    SizedBox(width: AppSpacing.md),
+                    const SizedBox(width: AppSpacing.md),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Batkhela Customer',
-                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                            displayName,
+                            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                           ),
-                          SizedBox(height: 2),
+                          const SizedBox(height: 2),
                           Text(
-                            '+92 345 0000000',
-                            style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
+                            displayPhone,
+                            style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
                           ),
                         ],
                       ),
@@ -911,6 +1012,16 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
                         subtitle: const Text('Local dispatch assistance: 0345-BATKHELA'),
                         trailing: const Icon(Icons.arrow_forward_ios, size: 14),
                         onTap: () {},
+                      ),
+                      const Divider(height: 1),
+                      ListTile(
+                        leading: const Icon(Icons.logout, color: Colors.red),
+                        title: const Text('Sign Out', style: TextStyle(color: Colors.red, fontWeight: FontWeight.w600)),
+                        onTap: () async {
+                          await AuthService.instance.signOut();
+                          if (!mounted) return;
+                          Navigator.of(context).popUntil((route) => route.isFirst);
+                        },
                       ),
                     ],
                   ),
@@ -982,145 +1093,6 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
                 }),
               ],
             ),
-          ),
-        );
-      },
-    );
-  }
-
-  void _showCartOverview(BuildContext context) {
-    showModalBottomSheet<void>(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (ctx) {
-        return Container(
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-          ),
-          padding: const EdgeInsets.all(AppSpacing.lg),
-          child: SafeArea(
-            child: _cartItemCount == 0
-                ? Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Container(
-                        width: 48,
-                        height: 4,
-                        decoration: BoxDecoration(
-                          color: Colors.grey.shade300,
-                          borderRadius: BorderRadius.circular(2),
-                        ),
-                      ),
-                      const SizedBox(height: AppSpacing.lg),
-                      Container(
-                        width: 72,
-                        height: 72,
-                        decoration: BoxDecoration(
-                          color: AppColors.primary.withAlpha(18),
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(Icons.shopping_bag_outlined, size: 36, color: AppColors.primary),
-                      ),
-                      const SizedBox(height: AppSpacing.md),
-                      Text(
-                        'Your Cart is Empty',
-                        style: AppTypography.headline(fontSize: 18, fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: AppSpacing.xs),
-                      const Text(
-                        'Browse local Batkhela stores & restaurants to add delicious meals or fresh groceries.',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
-                      ),
-                      const SizedBox(height: AppSpacing.xl),
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton(
-                          onPressed: () {
-                            Navigator.pop(ctx);
-                            setState(() {
-                              _currentNavIndex = 0;
-                            });
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.primary,
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(vertical: 14),
-                            shape: const RoundedRectangleBorder(borderRadius: AppRadius.roundedFull),
-                          ),
-                          child: const Text('Explore Stores', style: TextStyle(fontWeight: FontWeight.bold)),
-                        ),
-                      ),
-                    ],
-                  )
-                : Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Container(
-                        width: 48,
-                        height: 4,
-                        decoration: BoxDecoration(
-                          color: Colors.grey.shade300,
-                          borderRadius: BorderRadius.circular(2),
-                        ),
-                      ),
-                      const SizedBox(height: AppSpacing.md),
-                      Text(
-                        'Your Cart ($_cartItemCount items)',
-                        style: AppTypography.headline(fontSize: 18, fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: AppSpacing.md),
-                      ListTile(
-                        contentPadding: EdgeInsets.zero,
-                        leading: CircleAvatar(
-                          backgroundColor: AppColors.primary.withAlpha(25),
-                          child: Text('${_cartItemCount}x', style: const TextStyle(color: AppColors.primaryDark, fontWeight: FontWeight.bold)),
-                        ),
-                        title: const Text('Shinwari Mutton Karahi (Special)', style: TextStyle(fontWeight: FontWeight.w600)),
-                        subtitle: const Text('Batkhela Main Bazaar branch'),
-                        trailing: Text('PKR ${(2150 * _cartItemCount).toStringAsFixed(0)}', style: const TextStyle(fontWeight: FontWeight.bold)),
-                      ),
-                      const Divider(),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text('Total Estimated:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-                          Text(
-                            'PKR ${(2150 * _cartItemCount).toStringAsFixed(0)}',
-                            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.primary),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: AppSpacing.lg),
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton(
-                          onPressed: () {
-                            Navigator.pop(ctx);
-                            setState(() {
-                              _cartItemCount = 0;
-                              _currentNavIndex = 3; // Navigate to Orders tab
-                            });
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Order placed successfully! Dispatched to nearby Batkhela riders.'),
-                                backgroundColor: AppColors.primary,
-                                duration: Duration(seconds: 3),
-                              ),
-                            );
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.primary,
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(vertical: 14),
-                            shape: const RoundedRectangleBorder(borderRadius: AppRadius.roundedFull),
-                          ),
-                          child: const Text('Confirm & Place Order', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
-                        ),
-                      ),
-                    ],
-                  ),
           ),
         );
       },

@@ -8,6 +8,8 @@ import 'package:mobile_app/src/screens/rider/rider_delivery_detail_screen.dart';
 import 'package:mobile_app/src/screens/rider/rider_deliveries_view.dart';
 import 'package:mobile_app/src/screens/rider/rider_earnings_view.dart';
 import 'package:mobile_app/src/screens/rider/rider_profile_view.dart';
+import 'package:mobile_app/src/screens/auth/rider_registration_screen.dart';
+import 'package:mobile_app/src/screens/auth/rider_pending_approval_screen.dart';
 
 void main() {
   setUpAll(() {
@@ -201,6 +203,161 @@ void main() {
       expect(find.text('Vehicle & Registration'), findsOneWidget);
       expect(find.text('Delivery Rating & Reliability'), findsOneWidget);
       expect(find.text('24/7 Rider Emergency Helpline'), findsOneWidget);
+    });
+
+    testWidgets('RiderRegistrationScreen collects KYC data and submits application', (tester) async {
+      tester.view.physicalSize = const Size(800, 1800);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      await tester.pumpWidget(buildTestableWidget(const RiderRegistrationScreen(initialPhone: '+92 312 9988776')));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Rider Partner Registration'), findsOneWidget);
+      expect(find.text('1. Personal Information & CNIC'), findsOneWidget);
+      expect(find.text('2. Vehicle & License Details'), findsOneWidget);
+      expect(find.text('3. Preferred Batkhela Operating Zone'), findsOneWidget);
+      expect(find.text('4. Document KYC Verification Proof'), findsOneWidget);
+
+      // Enter details and submit
+      await tester.enterText(find.widgetWithText(TextFormField, 'Full Legal Name *'), 'Asif Khan');
+      await tester.enterText(find.widgetWithText(TextFormField, 'National CNIC Number *'), '15402-9988112-5');
+      await tester.enterText(find.widgetWithText(TextFormField, 'Number Plate *'), 'BK-M-2025-99');
+
+      await tester.tap(find.widgetWithText(ElevatedButton, 'Submit Rider Application'));
+      await tester.pumpAndSettle();
+
+      // Verify submission updated controller
+      expect(RiderDemoController.instance.profile.name, 'Asif Khan');
+      expect(RiderDemoController.instance.profile.cnic, '15402-9988112-5');
+      expect(RiderDemoController.instance.isCurrentRiderVerified, isFalse);
+    });
+
+    testWidgets('RiderPendingApprovalScreen allows checking status and transitions upon approval', (tester) async {
+      tester.view.physicalSize = const Size(800, 1800);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      // Reset to unverified
+      RiderDemoController.instance.resetToUnverifiedForTesting();
+
+      await tester.pumpWidget(buildTestableWidget(const RiderPendingApprovalScreen()));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Application Under Review'), findsOneWidget);
+      expect(find.text('Verification Timeline'), findsOneWidget);
+      expect(find.text('Check Verification Status'), findsOneWidget);
+
+      // Admin approves rider in controller
+      RiderDemoController.instance.approveRider();
+      await tester.pumpAndSettle();
+
+      expect(find.text('Rider Partner Approved & Verified!'), findsOneWidget);
+      expect(find.text('Open Rider Radar'), findsOneWidget);
+
+      await tester.tap(find.widgetWithText(ElevatedButton, 'Open Rider Radar'));
+      await tester.pumpAndSettle();
+
+      expect(RiderDemoController.instance.isCurrentRiderVerified, isTrue);
+    });
+
+    testWidgets('RiderDeliveryDetailScreen supports pickup items checklist confirmation', (tester) async {
+      tester.view.physicalSize = const Size(800, 1800);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      final pickupDelivery = RiderDeliveryAssignment(
+        id: 'DEL-PICKUP-TEST',
+        orderId: 'ORD-PICKUP-TEST',
+        orderNumber: 8871,
+        storeName: 'Test BBQ Corner',
+        pickupAddress: 'Bypass Road',
+        customerArea: 'Main Bazaar',
+        customerAddress: 'House 1, Main Bazaar',
+        itemNames: ['Chicken Tikka (2 Pcs)', 'Naan (4 Pcs)'],
+        cashToCollect: 850.0,
+        deliveryFeeEarnings: 120.0,
+        distanceKm: 1.2,
+        estimatedMinutes: 5,
+        stage: DeliveryStage.arrivedAtPickup,
+        createdAt: DateTime.now(),
+      );
+      RiderDemoController.instance.assignments.insert(0, pickupDelivery);
+
+      await tester.pumpWidget(buildTestableWidget(RiderDeliveryDetailScreen(delivery: pickupDelivery)));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Confirm Items & Pickup'), findsOneWidget);
+
+      // Tap action to open pickup verification bottom sheet
+      await tester.tap(find.text('Confirm Items & Pickup'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Store Pickup Verification'), findsOneWidget);
+      expect(find.text('Confirm Items & Start Delivery'), findsOneWidget);
+
+      // Confirm pickup
+      await tester.tap(find.widgetWithText(ElevatedButton, 'Confirm Items & Start Delivery'));
+      await tester.pumpAndSettle();
+
+      expect(pickupDelivery.stage, DeliveryStage.pickedUp);
+      expect(pickupDelivery.isItemsVerifiedAtPickup, isTrue);
+    });
+
+    testWidgets('RiderDeliveryDetailScreen supports proof of delivery completion and updates earnings', (tester) async {
+      tester.view.physicalSize = const Size(800, 1800);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      final dropoffDelivery = RiderDeliveryAssignment(
+        id: 'DEL-DROPOFF-TEST',
+        orderId: 'ORD-DROPOFF-TEST',
+        orderNumber: 8872,
+        storeName: 'Swat Fresh Mart',
+        pickupAddress: 'Hospital Road',
+        customerArea: 'Civil Colony',
+        customerAddress: 'House 7, Civil Colony',
+        itemNames: ['MilkPak 1L', 'Brown Bread'],
+        cashToCollect: 620.0,
+        deliveryFeeEarnings: 110.0,
+        distanceKm: 2.0,
+        estimatedMinutes: 6,
+        stage: DeliveryStage.onTheWay,
+        createdAt: DateTime.now(),
+      );
+      RiderDemoController.instance.assignments.insert(0, dropoffDelivery);
+
+      await tester.pumpWidget(buildTestableWidget(RiderDeliveryDetailScreen(delivery: dropoffDelivery)));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Confirm Delivery & Collect Cash'), findsOneWidget);
+
+      // Tap action to open proof of delivery sheet
+      await tester.tap(find.text('Confirm Delivery & Collect Cash'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Proof of Delivery & Handover'), findsOneWidget);
+      expect(find.text('Cash to Collect (COD)'), findsOneWidget);
+      expect(find.text('Confirm Handover & Complete Trip'), findsOneWidget);
+
+      // Confirm delivery
+      await tester.tap(find.widgetWithText(ElevatedButton, 'Confirm Handover & Complete Trip'));
+      await tester.pumpAndSettle();
+
+      expect(dropoffDelivery.stage, DeliveryStage.delivered);
+      expect(dropoffDelivery.proofType, isNotNull);
     });
   });
 }

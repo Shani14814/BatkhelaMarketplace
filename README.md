@@ -124,7 +124,7 @@ BatkhelaMarketplace/
 │       ├── lib/src/repositories/   # Repository contracts (Demo & Supabase implementations)
 │       ├── lib/src/services/       # Auth, Data Hub, Realtime, Location Services
 │       ├── lib/src/theme/          # Google Stitch Design System tokens
-│       └── test/                   # 59 automated unit & domain tests
+│       └── test/                   # 81 automated unit & domain tests
 ├── apps/
 │   ├── mobile_app/                 # Flutter Mobile App (Android & iOS)
 │   │   ├── lib/src/screens/auth/   # Phone OTP Login & Role Selector
@@ -132,7 +132,7 @@ BatkhelaMarketplace/
 │   │   ├── lib/src/screens/vendor/   # Vendor Dashboard & Catalog Management
 │   │   ├── lib/src/screens/rider/    # Rider Telemetry Radar & Deliveries
 │   │   ├── lib/src/widgets/        # Stylized Map Canvas & Shared Components
-│   │   └── test/                   # 26 automated widget & integration tests
+│   │   └── test/                   # 39 automated widget & integration tests
 │   └── admin_web/                  # Flutter Web Super Admin Control Center
 │       ├── lib/src/screens/admin/  # 9-Domain Super Admin Management Views
 │       └── test/                   # 10 automated admin dashboard tests

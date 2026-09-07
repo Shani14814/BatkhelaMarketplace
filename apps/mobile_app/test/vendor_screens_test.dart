@@ -8,6 +8,8 @@ import 'package:mobile_app/src/screens/vendor/vendor_order_detail_screen.dart';
 import 'package:mobile_app/src/screens/vendor/vendor_products_view.dart';
 import 'package:mobile_app/src/screens/vendor/vendor_business_view.dart';
 import 'package:mobile_app/src/screens/vendor/vendor_more_view.dart';
+import 'package:mobile_app/src/screens/auth/vendor_registration_screen.dart';
+import 'package:mobile_app/src/screens/auth/vendor_pending_approval_screen.dart';
 
 void main() {
   setUpAll(() {
@@ -142,6 +144,13 @@ void main() {
     });
 
     testWidgets('VendorProductsView toggles stock and supports Add Product dialog', (tester) async {
+      tester.view.physicalSize = const Size(800, 1800);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
       await tester.pumpWidget(buildTestableWidget(const VendorProductsView()));
       await tester.pumpAndSettle();
 
@@ -160,12 +169,12 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Add New Product'), findsOneWidget);
-      expect(find.text('Product Name'), findsOneWidget);
-      expect(find.text('Regular Price (PKR)'), findsOneWidget);
+      expect(find.text('Product Name *'), findsOneWidget);
+      expect(find.text('Regular Price (PKR) *'), findsOneWidget);
 
       // Enter details and submit
-      await tester.enterText(find.widgetWithText(TextField, 'Product Name'), 'Special Tikka Platter');
-      await tester.enterText(find.widgetWithText(TextField, 'Regular Price (PKR)'), '1850');
+      await tester.enterText(find.widgetWithText(TextField, 'Product Name *'), 'Special Tikka Platter');
+      await tester.enterText(find.widgetWithText(TextField, 'Regular Price (PKR) *'), '1850');
       await tester.enterText(find.widgetWithText(TextField, 'Description / Ingredients'), 'Assorted mix BBQ platter');
 
       await tester.tap(find.widgetWithText(ElevatedButton, 'Create Product'));
@@ -175,7 +184,112 @@ void main() {
       expect(VendorDemoController.instance.products.any((p) => p.name == 'Special Tikka Platter'), isTrue);
     });
 
-    testWidgets('VendorBusinessView renders info and operational switch', (tester) async {
+    testWidgets('VendorRegistrationScreen collects KYC data and submits application', (tester) async {
+      tester.view.physicalSize = const Size(800, 1800);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      await tester.pumpWidget(buildTestableWidget(const VendorRegistrationScreen(initialPhone: '+92 345 1122334')));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Vendor Registration & KYC'), findsOneWidget);
+      expect(find.text('Store Details'), findsOneWidget);
+      expect(find.text('Owner & Legal Information'), findsOneWidget);
+
+      // Enter store name, owner, and address
+      await tester.enterText(find.widgetWithText(TextFormField, 'Store Name *'), 'Batkhela Organic Mart');
+      await tester.enterText(find.widgetWithText(TextFormField, 'Owner Full Name *'), 'Imran Shah');
+      await tester.enterText(find.widgetWithText(TextFormField, 'CNIC / Trade License Number *'), '15402-1122334-5');
+      await tester.enterText(find.widgetWithText(TextFormField, 'Store Physical Address *'), 'Shop 12, Main GT Road, Batkhela');
+
+      // Tap submit button
+      await tester.tap(find.widgetWithText(ElevatedButton, 'Submit Application for Review'));
+      await tester.pumpAndSettle();
+
+      // Should transition to VendorPendingApprovalScreen
+      expect(find.text('Store Verification'), findsOneWidget);
+      expect(find.text('Application Under Review'), findsOneWidget);
+      expect(find.text('Batkhela Organic Mart'), findsOneWidget);
+      expect(VendorDemoController.instance.store.isVerified, isFalse);
+    });
+
+    testWidgets('VendorPendingApprovalScreen allows checking status and transitions upon approval', (tester) async {
+      tester.view.physicalSize = const Size(800, 1800);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      // Ensure store is currently unverified
+      VendorDemoController.instance.resetToUnverifiedForTesting();
+
+      await tester.pumpWidget(buildTestableWidget(const VendorPendingApprovalScreen()));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Application Under Review'), findsOneWidget);
+      expect(find.text('Verification Timeline'), findsOneWidget);
+      expect(find.text('Check Verification Status'), findsOneWidget);
+
+      // Admin approves the store in backend/controller
+      VendorDemoController.instance.approveVendorStore();
+      await tester.pumpAndSettle();
+
+      expect(find.text('Store Approved & Verified!'), findsOneWidget);
+      expect(find.text('Open Vendor Dashboard'), findsOneWidget);
+
+      await tester.tap(find.widgetWithText(ElevatedButton, 'Open Vendor Dashboard'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Store Operations & Quick Actions'), findsNothing); // Navigates to Dashboard
+      expect(VendorDemoController.instance.isCurrentVendorVerified, isTrue);
+    });
+
+    testWidgets('VendorProductsView supports editing and deleting existing products', (tester) async {
+      tester.view.physicalSize = const Size(800, 1800);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      await tester.pumpWidget(buildTestableWidget(const VendorProductsView()));
+      await tester.pumpAndSettle();
+
+      // Open Edit Product Modal for the first product
+      final editButtons = find.byIcon(Icons.edit_outlined);
+      expect(editButtons, findsWidgets);
+      await tester.tap(editButtons.first);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Edit Product'), findsOneWidget);
+      expect(find.text('Save Changes'), findsOneWidget);
+      expect(find.text('Delete'), findsOneWidget);
+
+      // Modify price
+      await tester.enterText(find.widgetWithText(TextField, 'Regular Price (PKR) *'), '2550');
+      await tester.tap(find.widgetWithText(ElevatedButton, 'Save Changes'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('PKR 2550'), findsWidgets);
+
+      // Test Delete product flow
+      final deleteButtons = find.byIcon(Icons.delete_outline);
+      final initialProductCount = VendorDemoController.instance.products.length;
+      await tester.tap(deleteButtons.first);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Delete Product?'), findsOneWidget);
+      await tester.tap(find.widgetWithText(ElevatedButton, 'Delete'));
+      await tester.pumpAndSettle();
+
+      expect(VendorDemoController.instance.products.length, initialProductCount - 1);
+    });
+
+    testWidgets('VendorBusinessView renders info, logo, banner, and operational switch', (tester) async {
       await tester.pumpWidget(buildTestableWidget(const VendorBusinessView()));
       await tester.pumpAndSettle();
 
@@ -183,7 +297,7 @@ void main() {
       expect(find.text('Merchant Phone'), findsOneWidget);
       expect(find.text('Store Location'), findsOneWidget);
       expect(find.text('Operating Hours'), findsOneWidget);
-      expect(find.text('Verified Batkhela Merchant'), findsOneWidget);
+      expect(find.text('VERIFIED'), findsOneWidget);
     });
 
     testWidgets('VendorMoreView allows approving and rejecting rider applications', (tester) async {
@@ -207,6 +321,37 @@ void main() {
         await tester.tap(approveBtn.first);
         await tester.pumpAndSettle();
       }
+    });
+
+    testWidgets('Vendor Add Product allows opening image source modal with device and preset options', (tester) async {
+      tester.view.physicalSize = const Size(800, 1800);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      await tester.pumpWidget(buildTestableWidget(const VendorProductsView()));
+      await tester.pumpAndSettle();
+
+      // Open Add Product modal
+      await tester.tap(find.widgetWithText(FloatingActionButton, 'Add Product'));
+      await tester.pumpAndSettle();
+
+      // Tap Choose Image button
+      await tester.tap(find.widgetWithText(ElevatedButton, 'Choose Image'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Choose Image Source'), findsOneWidget);
+      expect(find.text('Choose from Device Gallery'), findsOneWidget);
+      expect(find.text('Capture with Camera'), findsOneWidget);
+      expect(find.text('Or Select Demo Catalog Preset:'), findsOneWidget);
+
+      // Select a preset item
+      await tester.tap(find.text('Mutton Karahi').first);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Choose Image Source'), findsNothing);
     });
   });
 }

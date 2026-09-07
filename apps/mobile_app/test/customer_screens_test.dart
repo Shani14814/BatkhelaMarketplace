@@ -105,7 +105,7 @@ void main() {
       await tester.tap(find.text('View Cart'));
       await tester.pumpAndSettle();
 
-      expect(find.text('Your Order Cart'), findsOneWidget);
+      expect(find.textContaining('Your Order Cart'), findsOneWidget);
       expect(find.text('Proceed to Checkout'), findsOneWidget);
     });
   });

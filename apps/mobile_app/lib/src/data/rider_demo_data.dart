@@ -66,6 +66,9 @@ class RiderDeliveryAssignment {
   final int estimatedMinutes;
   DeliveryStage stage;
   final DateTime createdAt;
+  String? proofType;
+  String? proofPhotoUrl;
+  bool isItemsVerifiedAtPickup;
 
   RiderDeliveryAssignment({
     required this.id,
@@ -84,6 +87,9 @@ class RiderDeliveryAssignment {
     required this.estimatedMinutes,
     this.stage = DeliveryStage.offered,
     required this.createdAt,
+    this.proofType,
+    this.proofPhotoUrl,
+    this.isItemsVerifiedAtPickup = false,
   });
 
   double get totalEarnings => deliveryFeeEarnings + tipEarnings;
@@ -94,22 +100,32 @@ class RiderProfile {
   String name;
   String phone;
   String vehicleModel;
+  String vehicleType;
   String licenseNumber;
+  String plateNumber;
   String cnic;
+  String preferredZone;
   double rating;
   int completedDeliveriesCount;
   bool isVerified;
+  String applicationStatus; // 'pending', 'approved', 'rejected'
+  DateTime appliedAt;
 
   RiderProfile({
     required this.name,
     required this.phone,
     required this.vehicleModel,
+    this.vehicleType = 'Motorcycle (125cc)',
     required this.licenseNumber,
+    this.plateNumber = 'BK-M-2024-88',
     required this.cnic,
+    this.preferredZone = 'All Batkhela Zones',
     this.rating = 4.9,
     this.completedDeliveriesCount = 280,
     this.isVerified = true,
-  });
+    this.applicationStatus = 'approved',
+    DateTime? appliedAt,
+  }) : appliedAt = appliedAt ?? DateTime.now().subtract(const Duration(days: 60));
 }
 
 /// Centralized In-Memory Rider State Controller
@@ -123,15 +139,63 @@ class RiderDemoController extends ChangeNotifier {
     name: 'Kamran Khan',
     phone: '+92 344 1122334',
     vehicleModel: 'Honda CG 125 (Khyber Red)',
+    vehicleType: 'Motorcycle (125cc)',
     licenseNumber: 'BK-M-2024-88',
+    plateNumber: 'BK-M-2024-88',
     cnic: '15402-1234567-1',
+    preferredZone: 'Main Bazaar & Hospital Road',
     rating: 4.9,
     completedDeliveriesCount: 284,
     isVerified: true,
+    applicationStatus: 'approved',
   );
+
+  bool get isCurrentRiderVerified => profile.isVerified;
 
   void toggleOnlineStatus(bool online) {
     isOnline = online;
+    notifyListeners();
+  }
+
+  void registerRider({
+    required String name,
+    required String phone,
+    required String vehicleType,
+    required String vehicleModel,
+    required String plateNumber,
+    required String licenseNumber,
+    required String cnic,
+    required String preferredZone,
+  }) {
+    profile.name = name;
+    profile.phone = phone;
+    profile.vehicleType = vehicleType;
+    profile.vehicleModel = vehicleModel;
+    profile.plateNumber = plateNumber;
+    profile.licenseNumber = licenseNumber;
+    profile.cnic = cnic;
+    profile.preferredZone = preferredZone;
+    profile.isVerified = false;
+    profile.applicationStatus = 'pending';
+    profile.appliedAt = DateTime.now();
+    notifyListeners();
+  }
+
+  void approveRider() {
+    profile.isVerified = true;
+    profile.applicationStatus = 'approved';
+    notifyListeners();
+  }
+
+  void rejectRider() {
+    profile.isVerified = false;
+    profile.applicationStatus = 'rejected';
+    notifyListeners();
+  }
+
+  void resetToUnverifiedForTesting() {
+    profile.isVerified = false;
+    profile.applicationStatus = 'pending';
     notifyListeners();
   }
 
@@ -327,6 +391,7 @@ class RiderDemoController extends ChangeNotifier {
           break;
         case DeliveryStage.onTheWay:
           assignments[index].stage = DeliveryStage.delivered;
+          profile.completedDeliveriesCount += 1;
           break;
         case DeliveryStage.delivered:
         case DeliveryStage.declined:
@@ -336,9 +401,32 @@ class RiderDemoController extends ChangeNotifier {
     }
   }
 
+  void confirmPickupItems(String id) {
+    final index = assignments.indexWhere((a) => a.id == id);
+    if (index != -1) {
+      assignments[index].isItemsVerifiedAtPickup = true;
+      assignments[index].stage = DeliveryStage.pickedUp;
+      notifyListeners();
+    }
+  }
+
+  void completeDeliveryWithProof({
+    required String id,
+    required String proofType,
+    String? proofPhotoUrl,
+  }) {
+    final index = assignments.indexWhere((a) => a.id == id);
+    if (index != -1) {
+      assignments[index].proofType = proofType;
+      assignments[index].proofPhotoUrl = proofPhotoUrl;
+      assignments[index].stage = DeliveryStage.delivered;
+      profile.completedDeliveriesCount += 1;
+      notifyListeners();
+    }
+  }
+
   // Financial & Stats summaries
-  double get todayEarnings => completedAssignments.fold(0.0, (sum, a) => sum + a.totalEarnings) +
-      (activeDelivery != null && activeDelivery!.stage == DeliveryStage.delivered ? activeDelivery!.totalEarnings : 0.0);
+  double get todayEarnings => completedAssignments.fold(0.0, (sum, a) => sum + a.totalEarnings);
 
   int get todayCompletedCount => completedAssignments.length;
 }

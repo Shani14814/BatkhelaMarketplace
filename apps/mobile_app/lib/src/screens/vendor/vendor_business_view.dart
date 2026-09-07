@@ -33,117 +33,181 @@ class VendorBusinessView extends StatelessWidget {
           body: ListView(
             padding: const EdgeInsets.all(16),
             children: [
-              // Store Header Card
+              // Store Header Card with Banner & Logo
               Card(
                 elevation: 0,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
                   side: const BorderSide(color: Color(0xFFE2E8F0)),
                 ),
+                clipBehavior: Clip.antiAlias,
                 color: Colors.white,
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Container(
-                            width: 60,
-                            height: 60,
-                            decoration: BoxDecoration(
-                              color: AppColors.primary.withAlpha(20),
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                            child: const Icon(Icons.storefront, color: AppColors.primary, size: 32),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Banner Image
+                    Stack(
+                      children: [
+                        SizedBox(
+                          height: 110,
+                          width: double.infinity,
+                          child: MarketplaceProductImage(
+                            imageUrl: store.bannerUrl,
+                            productName: store.name,
+                            category: store.category,
+                            fit: BoxFit.cover,
                           ),
-                          const SizedBox(width: 14),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                        ),
+                        Positioned(
+                          top: 10,
+                          right: 10,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: Colors.black.withValues(alpha: 0.65),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
                               children: [
-                                Text(
-                                  store.name,
-                                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppColors.textPrimary),
+                                Icon(
+                                  store.isVerified ? Icons.verified : Icons.hourglass_top,
+                                  color: store.isVerified ? const Color(0xFF4ADE80) : Colors.amber,
+                                  size: 14,
                                 ),
-                                const SizedBox(height: 2),
+                                const SizedBox(width: 4),
                                 Text(
-                                  store.category,
-                                  style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
+                                  store.isVerified ? 'VERIFIED' : 'PENDING',
+                                  style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
                                 ),
-                                const SizedBox(height: 4),
-                                Row(
-                                  children: [
-                                    const Icon(Icons.star_rounded, size: 18, color: AppColors.warning),
-                                    const SizedBox(width: 4),
-                                    Text(
-                                      '${store.rating} (${store.reviewCount} customer reviews)',
-                                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              // Store Logo
+                              Container(
+                                width: 56,
+                                height: 56,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(14),
+                                  border: Border.all(color: Colors.white, width: 2),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withValues(alpha: 0.08),
+                                      blurRadius: 8,
+                                      offset: const Offset(0, 2),
                                     ),
                                   ],
+                                ),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(12),
+                                  child: MarketplaceProductImage(
+                                    imageUrl: store.logoUrl,
+                                    productName: store.name,
+                                    category: store.category,
+                                    fit: BoxFit.cover,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 14),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      store.name,
+                                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppColors.textPrimary),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      store.category,
+                                      style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Row(
+                                      children: [
+                                        const Icon(Icons.star_rounded, size: 18, color: AppColors.warning),
+                                        const SizedBox(width: 4),
+                                        Text(
+                                          '${store.rating} (${store.reviewCount} customer reviews)',
+                                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                          const Divider(height: 24, color: Color(0xFFF1F5F9)),
+
+                          // Store Status Switch Tile
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                            decoration: BoxDecoration(
+                              color: store.isOpen
+                                  ? AppColors.softCyan.withAlpha(45)
+                                  : AppColors.error.withAlpha(15),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: store.isOpen
+                                    ? AppColors.primary.withAlpha(40)
+                                    : AppColors.error.withAlpha(40),
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  store.isOpen ? Icons.check_circle : Icons.pause_circle_filled,
+                                  color: store.isOpen ? AppColors.primary : AppColors.error,
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        store.isOpen ? 'Store is OPEN & Accepting Orders' : 'Store is Temporarily CLOSED',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 13,
+                                          color: store.isOpen ? AppColors.primary : AppColors.error,
+                                        ),
+                                      ),
+                                      Text(
+                                        store.isOpen
+                                            ? 'Batkhela customers can place instant orders'
+                                            : 'Orders are paused in the customer marketplace',
+                                        style: TextStyle(fontSize: 11, color: Colors.grey.shade700),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                Switch(
+                                  value: store.isOpen,
+                                  activeThumbColor: AppColors.primary,
+                                  activeTrackColor: AppColors.softCyan,
+                                  onChanged: (val) {
+                                    VendorDemoController.instance.toggleStoreOpenStatus(val);
+                                  },
                                 ),
                               ],
                             ),
                           ),
                         ],
                       ),
-                      const Divider(height: 24, color: Color(0xFFF1F5F9)),
-
-                      // Store Status Switch Tile
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                        decoration: BoxDecoration(
-                          color: store.isOpen
-                              ? AppColors.softCyan.withAlpha(45)
-                              : AppColors.error.withAlpha(15),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: store.isOpen
-                                ? AppColors.primary.withAlpha(40)
-                                : AppColors.error.withAlpha(40),
-                          ),
-                        ),
-                        child: Row(
-                          children: [
-                            Icon(
-                              store.isOpen ? Icons.check_circle : Icons.pause_circle_filled,
-                              color: store.isOpen ? AppColors.primary : AppColors.error,
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    store.isOpen ? 'Store is OPEN & Accepting Orders' : 'Store is Temporarily CLOSED',
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 13,
-                                      color: store.isOpen ? AppColors.primary : AppColors.error,
-                                    ),
-                                  ),
-                                  Text(
-                                    store.isOpen
-                                        ? 'Batkhela customers can place instant orders'
-                                        : 'Orders are paused in the customer marketplace',
-                                    style: TextStyle(fontSize: 11, color: Colors.grey.shade700),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            Switch(
-                              value: store.isOpen,
-                              activeThumbColor: AppColors.primary,
-                              activeTrackColor: AppColors.softCyan,
-                              onChanged: (val) {
-                                VendorDemoController.instance.toggleStoreOpenStatus(val);
-                              },
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
               const SizedBox(height: 16),
@@ -267,6 +331,16 @@ class VendorBusinessView extends StatelessWidget {
     final phoneCtrl = TextEditingController(text: store.phone);
     final addrCtrl = TextEditingController(text: store.address);
     final hoursCtrl = TextEditingController(text: store.operatingHours);
+    String selectedLogo = store.logoUrl ?? 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=500&q=80';
+    String selectedBanner = store.bannerUrl ?? 'https://images.unsplash.com/photo-1544025162-d76694265947?w=1200&q=80';
+
+    final List<Map<String, String>> logoPresets = [
+      {'label': 'Shinwari BBQ', 'url': 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=500&q=80'},
+      {'label': 'Super Mart', 'url': 'https://images.unsplash.com/photo-1578916171728-46686eac8d58?w=500&q=80'},
+      {'label': 'Pharmacy', 'url': 'https://images.unsplash.com/photo-1586015555751-63bb77f4322a?w=500&q=80'},
+      {'label': 'Fresh Fruit', 'url': 'https://images.unsplash.com/photo-1610832958506-aa56368176cf?w=500&q=80'},
+      {'label': 'Bakery Sweets', 'url': 'https://images.unsplash.com/photo-1601050690597-df0568f70950?w=500&q=80'},
+    ];
 
     showModalBottomSheet<void>(
       context: context,
@@ -276,108 +350,155 @@ class VendorBusinessView extends StatelessWidget {
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (sheetContext) {
-        return Padding(
-          padding: EdgeInsets.only(
-            top: 20,
-            left: 20,
-            right: 20,
-            bottom: MediaQuery.of(sheetContext).viewInsets.bottom + 20,
-          ),
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        return StatefulBuilder(
+          builder: (modalCtx, setModalState) {
+            return Padding(
+              padding: EdgeInsets.only(
+                top: 20,
+                left: 20,
+                right: 20,
+                bottom: MediaQuery.of(sheetContext).viewInsets.bottom + 20,
+              ),
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'Edit Store Profile',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.primary,
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          'Edit Store Profile',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.primary,
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.close),
+                          onPressed: () => Navigator.of(sheetContext).pop(),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 14),
+
+                    // Logo & Banner Preview & Presets
+                    const Text('Store Logo Preset', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                    const SizedBox(height: 8),
+                    SizedBox(
+                      height: 70,
+                      child: ListView.separated(
+                        scrollDirection: Axis.horizontal,
+                        itemCount: logoPresets.length,
+                        separatorBuilder: (context, index) => const SizedBox(width: 10),
+                        itemBuilder: (context, index) {
+                          final item = logoPresets[index];
+                          final isSel = selectedLogo == item['url'];
+                          return GestureDetector(
+                            onTap: () => setModalState(() => selectedLogo = item['url']!),
+                            child: Container(
+                              width: 60,
+                              height: 60,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: isSel ? AppColors.primary : Colors.grey.shade300,
+                                  width: isSel ? 3 : 1,
+                                ),
+                              ),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(10),
+                                child: MarketplaceProductImage(
+                                  imageUrl: item['url'],
+                                  productName: item['label']!,
+                                  category: item['label'],
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+                            ),
+                          );
+                        },
                       ),
                     ),
-                    IconButton(
-                      icon: const Icon(Icons.close),
-                      onPressed: () => Navigator.of(sheetContext).pop(),
+                    const SizedBox(height: 14),
+
+                    TextField(
+                      controller: nameCtrl,
+                      decoration: InputDecoration(
+                        labelText: 'Store Business Name',
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: catCtrl,
+                      decoration: InputDecoration(
+                        labelText: 'Business Category',
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: phoneCtrl,
+                      decoration: InputDecoration(
+                        labelText: 'Contact Phone Number',
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: addrCtrl,
+                      decoration: InputDecoration(
+                        labelText: 'Store Address in Batkhela',
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: hoursCtrl,
+                      decoration: InputDecoration(
+                        labelText: 'Operating Schedule',
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primary,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
+                        onPressed: () {
+                          final name = nameCtrl.text.trim();
+                          if (name.isEmpty) return;
+
+                          VendorDemoController.instance.updateStoreProfile(
+                            name: name,
+                            category: catCtrl.text.trim(),
+                            phone: phoneCtrl.text.trim(),
+                            address: addrCtrl.text.trim(),
+                            operatingHours: hoursCtrl.text.trim(),
+                            logoUrl: selectedLogo,
+                            bannerUrl: selectedBanner,
+                          );
+
+                          Navigator.of(sheetContext).pop();
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Store profile updated successfully!')),
+                          );
+                        },
+                        child: const Text('Save Store Changes', style: TextStyle(fontWeight: FontWeight.bold)),
+                      ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: nameCtrl,
-                  decoration: InputDecoration(
-                    labelText: 'Store Business Name',
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                TextField(
-                  controller: catCtrl,
-                  decoration: InputDecoration(
-                    labelText: 'Business Category',
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                TextField(
-                  controller: phoneCtrl,
-                  decoration: InputDecoration(
-                    labelText: 'Contact Phone Number',
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                TextField(
-                  controller: addrCtrl,
-                  decoration: InputDecoration(
-                    labelText: 'Store Address in Batkhela',
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                TextField(
-                  controller: hoursCtrl,
-                  decoration: InputDecoration(
-                    labelText: 'Operating Schedule',
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                  ),
-                ),
-                const SizedBox(height: 20),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    ),
-                    onPressed: () {
-                      final name = nameCtrl.text.trim();
-                      if (name.isEmpty) return;
-
-                      VendorDemoController.instance.updateStoreProfile(
-                        name: name,
-                        category: catCtrl.text.trim(),
-                        phone: phoneCtrl.text.trim(),
-                        address: addrCtrl.text.trim(),
-                        operatingHours: hoursCtrl.text.trim(),
-                      );
-
-                      Navigator.of(sheetContext).pop();
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Store profile updated successfully!')),
-                      );
-                    },
-                    child: const Text('Save Store Changes', style: TextStyle(fontWeight: FontWeight.bold)),
-                  ),
-                ),
-              ],
-            ),
-          ),
+              ),
+            );
+          },
         );
       },
     );

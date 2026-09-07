@@ -52,6 +52,50 @@ class AuthService {
     });
   }
 
+  String _sanitizeErrorMessage(dynamic error) {
+    if (error == null) return 'An unexpected error occurred. Please try again.';
+    final str = error.toString().toLowerCase();
+
+    // Check for socket/network/lookup/fetch errors or raw backend hostnames
+    if (str.contains('socket') ||
+        str.contains('host lookup') ||
+        str.contains('failed host') ||
+        str.contains('clientexception') ||
+        str.contains('authretryablefetchexception') ||
+        str.contains('network') ||
+        str.contains('connection refused') ||
+        str.contains('connection timed out') ||
+        str.contains('xmlhttprequest') ||
+        str.contains('handshake') ||
+        str.contains('supabase')) {
+      return 'Unable to connect to the authentication service. Please check your internet connection and try again.';
+    }
+
+    if (str.contains('invalid token') ||
+        str.contains('otp_expired') ||
+        str.contains('token has expired') ||
+        str.contains('invalid otp') ||
+        str.contains('bad_code') ||
+        str.contains('wrong code') ||
+        str.contains('token is invalid')) {
+      return 'Invalid verification code. Please check the code and try again.';
+    }
+
+    if (str.contains('invalid phone') || str.contains('phone_invalid') || str.contains('invalid format')) {
+      return 'Please enter a valid Pakistani mobile number (+92 3XX XXXXXXX).';
+    }
+
+    if (str.contains('rate limit') || str.contains('too many requests') || str.contains('over_email_send_rate_limit')) {
+      return 'Too many attempts. Please wait a moment before trying again.';
+    }
+
+    if (str.contains('invalid login credentials') || str.contains('invalid_grant')) {
+      return 'Invalid credentials. Please verify your details and try again.';
+    }
+
+    return 'Unable to process your request. Please check your network and try again.';
+  }
+
   /// Send Phone OTP
   Future<bool> sendPhoneOtp(String phone) async {
     isLoadingNotifier.value = true;
@@ -62,7 +106,7 @@ class AuthService {
       return true;
     } catch (e) {
       isLoadingNotifier.value = false;
-      errorNotifier.value = e.toString().replaceAll('Exception: ', '');
+      errorNotifier.value = _sanitizeErrorMessage(e);
       return false;
     }
   }
@@ -86,9 +130,14 @@ class AuthService {
       return profile;
     } catch (e) {
       isLoadingNotifier.value = false;
-      errorNotifier.value = e.toString().replaceAll('Exception: ', '');
+      errorNotifier.value = _sanitizeErrorMessage(e);
       return null;
     }
+  }
+
+  /// Update locally cached profile info (e.g., after onboarding profile setup)
+  void updateCurrentProfile(UserProfile profile) {
+    currentProfileNotifier.value = profile;
   }
 
   /// Sign In with Email & Password
@@ -110,7 +159,7 @@ class AuthService {
       return profile;
     } catch (e) {
       isLoadingNotifier.value = false;
-      errorNotifier.value = e.toString().replaceAll('Exception: ', '');
+      errorNotifier.value = _sanitizeErrorMessage(e);
       return null;
     }
   }
@@ -129,7 +178,7 @@ class AuthService {
       return profile;
     } catch (e) {
       isLoadingNotifier.value = false;
-      errorNotifier.value = e.toString().replaceAll('Exception: ', '');
+      errorNotifier.value = _sanitizeErrorMessage(e);
       return null;
     }
   }

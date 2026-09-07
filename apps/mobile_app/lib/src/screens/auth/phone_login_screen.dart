@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:marketplace_core/marketplace_core.dart';
 import 'otp_verification_screen.dart';
+import 'vendor_registration_screen.dart';
+import 'rider_registration_screen.dart';
 import '../role_selector_screen.dart';
 
 class PhoneLoginScreen extends StatefulWidget {
@@ -140,9 +142,9 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
               // Phone Number Input Field
               Container(
                 decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.08),
+                  color: const Color(0xFF1E293B).withValues(alpha: 0.85),
                   borderRadius: AppRadius.roundedLg,
-                  border: Border.all(color: Colors.white24),
+                  border: Border.all(color: Colors.white38, width: 1.2),
                 ),
                 child: Row(
                   children: [
@@ -157,7 +159,11 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                           SizedBox(width: AppSpacing.xs),
                           Text(
                             '+92',
-                            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15),
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
                           ),
                         ],
                       ),
@@ -166,12 +172,28 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                       child: TextField(
                         controller: _phoneController,
                         keyboardType: TextInputType.phone,
-                        style: const TextStyle(color: Colors.white, fontSize: 15),
+                        cursorColor: AppColors.primaryLight,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 0.8,
+                        ),
                         decoration: const InputDecoration(
+                          filled: false,
+                          isDense: true,
                           hintText: '345 1234567',
-                          hintStyle: TextStyle(color: Colors.white38),
+                          hintStyle: TextStyle(
+                            color: Colors.white54,
+                            fontSize: 15,
+                            fontWeight: FontWeight.normal,
+                          ),
                           border: InputBorder.none,
-                          contentPadding: EdgeInsets.symmetric(horizontal: AppSpacing.md),
+                          enabledBorder: InputBorder.none,
+                          focusedBorder: InputBorder.none,
+                          errorBorder: InputBorder.none,
+                          disabledBorder: InputBorder.none,
+                          contentPadding: EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: 14),
                         ),
                         onSubmitted: (_) => _handleSendOtp(),
                       ),
@@ -208,6 +230,53 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
 
               const Spacer(flex: 3),
 
+              // Partner Registration Row
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  TextButton.icon(
+                    onPressed: () {
+                      Navigator.push<void>(
+                        context,
+                        MaterialPageRoute<void>(
+                          builder: (context) => VendorRegistrationScreen(
+                            initialPhone: _phoneController.text.isNotEmpty
+                                ? '+92 ${_phoneController.text.trim()}'
+                                : null,
+                          ),
+                        ),
+                      );
+                    },
+                    icon: const Icon(Icons.storefront_outlined, color: AppColors.primaryLight, size: 16),
+                    label: const Text(
+                      'Join as Merchant',
+                      style: TextStyle(color: AppColors.primaryLight, fontSize: 12, fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                  const Text('•', style: TextStyle(color: Colors.white38)),
+                  TextButton.icon(
+                    onPressed: () {
+                      Navigator.push<void>(
+                        context,
+                        MaterialPageRoute<void>(
+                          builder: (context) => RiderRegistrationScreen(
+                            initialPhone: _phoneController.text.isNotEmpty
+                                ? '+92 ${_phoneController.text.trim()}'
+                                : null,
+                          ),
+                        ),
+                      );
+                    },
+                    icon: const Icon(Icons.two_wheeler_outlined, color: AppColors.primaryLight, size: 16),
+                    label: const Text(
+                      'Join as Rider',
+                      style: TextStyle(color: AppColors.primaryLight, fontSize: 12, fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 4),
+
               // Demo Testing Mode Option
               TextButton.icon(
                 onPressed: () {
@@ -216,10 +285,10 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                     MaterialPageRoute<void>(builder: (context) => const RoleSelectorScreen()),
                   );
                 },
-                icon: const Icon(Icons.developer_mode, color: AppColors.primaryLight, size: 18),
+                icon: const Icon(Icons.developer_mode, color: Colors.white70, size: 16),
                 label: const Text(
                   'Switch to Demo Testing Mode (Role Selector)',
-                  style: TextStyle(color: AppColors.primaryLight, fontSize: 13),
+                  style: TextStyle(color: Colors.white70, fontSize: 12),
                 ),
               ),
               const SizedBox(height: AppSpacing.md),

@@ -41,6 +41,7 @@ export 'src/services/location/demo_location_service.dart';
 export 'src/services/location/rider_location_tracker.dart';
 export 'src/services/notification/push_notification_adapter.dart';
 export 'src/services/notification/notification_controller.dart';
+export 'src/services/cart_controller.dart';
 
 export 'src/repositories/customer_repository.dart';
 export 'src/repositories/vendor_repository.dart';
@@ -84,3 +85,4 @@ export 'src/components/marketplace_status_badge.dart';
 export 'src/components/marketplace_bottom_nav.dart';
 export 'src/components/kpi_card.dart';
 export 'src/components/vendor_quick_action_button.dart';
+export 'src/components/marketplace_product_image.dart';

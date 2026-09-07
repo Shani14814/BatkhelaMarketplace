@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:marketplace_core/marketplace_core.dart';
+import 'customer_demo_data.dart';
 
 /// Rider Application Status
 enum RiderApplicationStatus { pending, approved, rejected }
@@ -34,7 +35,13 @@ class VendorStoreProfile {
   String phone;
   String address;
   String operatingHours;
+  String? ownerName;
+  String? cnic;
+  String? logoUrl;
+  String? bannerUrl;
   bool isOpen;
+  bool isVerified;
+  String applicationStatus; // 'submitted', 'approved', 'rejected'
   double rating;
   int reviewCount;
 
@@ -44,7 +51,13 @@ class VendorStoreProfile {
     required this.phone,
     required this.address,
     required this.operatingHours,
+    this.ownerName = 'Khyber Shinwari Master Chef',
+    this.cnic = '15402-9876543-1',
+    this.logoUrl = 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=500&q=80',
+    this.bannerUrl = 'https://images.unsplash.com/photo-1544025162-d76694265947?w=1200&q=80',
     this.isOpen = true,
+    this.isVerified = true,
+    this.applicationStatus = 'approved',
     this.rating = 4.9,
     this.reviewCount = 240,
   });
@@ -62,13 +75,65 @@ class VendorDemoController extends ChangeNotifier {
     phone: '+92 345 9876543',
     address: 'Main GT Road, Near Bypass Chowk, Batkhela',
     operatingHours: '11:00 AM – 11:30 PM (Daily)',
+    ownerName: 'Khyber Shinwari Master Chef',
+    cnic: '15402-9876543-1',
+    logoUrl: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=500&q=80',
+    bannerUrl: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=1200&q=80',
     isOpen: true,
+    isVerified: true,
+    applicationStatus: 'approved',
     rating: 4.9,
     reviewCount: 240,
   );
 
+  bool get isCurrentVendorVerified => store.isVerified;
+
+  void registerVendorStore({
+    required String name,
+    required String category,
+    required String ownerName,
+    required String phone,
+    required String address,
+    required String cnic,
+    String? logoUrl,
+    String? bannerUrl,
+    String operatingHours = '10:00 AM – 10:00 PM',
+  }) {
+    store.name = name;
+    store.category = category;
+    store.ownerName = ownerName;
+    store.phone = phone;
+    store.address = address;
+    store.cnic = cnic;
+    if (logoUrl != null) store.logoUrl = logoUrl;
+    if (bannerUrl != null) store.bannerUrl = bannerUrl;
+    store.operatingHours = operatingHours;
+    store.isVerified = false;
+    store.applicationStatus = 'submitted';
+    notifyListeners();
+  }
+
+  void approveVendorStore() {
+    store.isVerified = true;
+    store.applicationStatus = 'approved';
+    notifyListeners();
+  }
+
+  void rejectVendorStore() {
+    store.isVerified = false;
+    store.applicationStatus = 'rejected';
+    notifyListeners();
+  }
+
+  void resetToUnverifiedForTesting() {
+    store.isVerified = false;
+    store.applicationStatus = 'submitted';
+    notifyListeners();
+  }
+
   void toggleStoreOpenStatus(bool isOpen) {
     store.isOpen = isOpen;
+    _syncWithCustomerCatalog();
     notifyListeners();
   }
 
@@ -78,12 +143,17 @@ class VendorDemoController extends ChangeNotifier {
     required String phone,
     required String address,
     required String operatingHours,
+    String? logoUrl,
+    String? bannerUrl,
   }) {
     store.name = name;
     store.category = category;
     store.phone = phone;
     store.address = address;
     store.operatingHours = operatingHours;
+    if (logoUrl != null) store.logoUrl = logoUrl;
+    if (bannerUrl != null) store.bannerUrl = bannerUrl;
+    _syncWithCustomerCatalog();
     notifyListeners();
   }
 
@@ -421,6 +491,7 @@ class VendorDemoController extends ChangeNotifier {
         imageUrl: old.imageUrl,
         createdAt: old.createdAt,
       );
+      _syncWithCustomerCatalog();
       notifyListeners();
     }
   }
@@ -431,6 +502,8 @@ class VendorDemoController extends ChangeNotifier {
     required double price,
     double? discountPrice,
     required String description,
+    String? imageUrl,
+    int stockQuantity = 50,
   }) {
     final newProduct = Product(
       id: 'prod-${DateTime.now().millisecondsSinceEpoch}',
@@ -440,11 +513,13 @@ class VendorDemoController extends ChangeNotifier {
       price: price,
       discountPrice: discountPrice,
       description: description,
+      imageUrl: imageUrl ?? 'https://images.unsplash.com/photo-1544025162-d76694265947?w=400&auto=format&fit=crop&q=80',
       isAvailable: true,
-      stockQuantity: 50,
+      stockQuantity: stockQuantity,
       createdAt: DateTime.now(),
     );
     products.insert(0, newProduct);
+    _syncWithCustomerCatalog();
     notifyListeners();
   }
 
@@ -455,6 +530,9 @@ class VendorDemoController extends ChangeNotifier {
     required double price,
     double? discountPrice,
     required String description,
+    String? imageUrl,
+    int? stockQuantity,
+    bool? isAvailable,
   }) {
     final index = products.indexWhere((p) => p.id == id);
     if (index != -1) {
@@ -468,12 +546,44 @@ class VendorDemoController extends ChangeNotifier {
         description: description,
         price: price,
         discountPrice: discountPrice,
-        stockQuantity: old.stockQuantity,
-        isAvailable: old.isAvailable,
-        imageUrl: old.imageUrl,
+        stockQuantity: stockQuantity ?? old.stockQuantity,
+        isAvailable: isAvailable ?? old.isAvailable,
+        imageUrl: imageUrl ?? old.imageUrl,
         createdAt: old.createdAt,
       );
+      _syncWithCustomerCatalog();
       notifyListeners();
+    }
+  }
+
+  void deleteProduct(String id) {
+    products.removeWhere((p) => p.id == id);
+    _syncWithCustomerCatalog();
+    notifyListeners();
+  }
+
+  void _syncWithCustomerCatalog() {
+    // Synchronize Store 1 in Customer Demo Data with current Vendor state
+    if (CustomerDemoData.stores.isNotEmpty) {
+      final oldStore = CustomerDemoData.stores[0];
+      CustomerDemoData.stores[0] = DemoStore(
+        id: oldStore.id,
+        name: store.name,
+        categoryId: oldStore.categoryId,
+        categoryName: store.category,
+        description: store.name.contains('Shinwari')
+            ? 'Authentic Mutton Karahi, Chapli Kabab, Namkeen Tikka & Hot Naan'
+            : store.category,
+        address: store.address,
+        rating: store.rating,
+        reviewCount: store.reviewCount,
+        deliveryTime: oldStore.deliveryTime,
+        deliveryFee: oldStore.deliveryFee,
+        badges: oldStore.badges,
+        isOpen: store.isOpen,
+        imageUrl: store.bannerUrl ?? oldStore.imageUrl,
+        products: List<Product>.from(products),
+      );
     }
   }
 

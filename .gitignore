@@ -61,6 +61,10 @@ symbols/
 *.local
 google-services.json
 GoogleService-Info.plist
+key.properties
+**/key.properties
+*.pem
+*.p12
 
 # Coverage
 coverage/

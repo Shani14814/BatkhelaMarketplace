@@ -64,6 +64,11 @@ class RiderDeliveryDetailScreen extends StatelessWidget {
                 destinationAddress: liveDelivery.customerAddress,
                 distanceKm: liveDelivery.distanceKm,
                 estimatedMinutes: liveDelivery.estimatedMinutes,
+                destinationLat: liveDelivery.customerLat ?? 34.6212,
+                destinationLng: liveDelivery.customerLng ?? 71.9765,
+                riderLat: RiderDemoController.instance.liveRiderLat,
+                riderLng: RiderDemoController.instance.liveRiderLng,
+                isOutForDelivery: liveDelivery.stage == DeliveryStage.onTheWay,
               ),
               const SizedBox(height: 16),
 

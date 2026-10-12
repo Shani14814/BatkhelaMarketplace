@@ -42,6 +42,7 @@ symbols/
 **/android/app/*.jks
 *.keystore
 *.jks
+*.apk
 
 # iOS / Xcode
 **/ios/Flutter/Generated.xcconfig

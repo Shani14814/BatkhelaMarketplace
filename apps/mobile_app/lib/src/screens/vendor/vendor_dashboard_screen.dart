@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:marketplace_core/marketplace_core.dart';
+import '../../data/customer_demo_data.dart';
 import '../../data/vendor_demo_data.dart';
 import '../../widgets/notification_inbox_sheet.dart';
 import 'vendor_order_detail_screen.dart';
@@ -26,6 +27,120 @@ class _VendorDashboardScreenState extends State<VendorDashboardScreen> {
     );
   }
 
+  void _showVendorStoreSwitcherSheet(BuildContext context, VendorDemoController ctrl) {
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        return Container(
+          height: MediaQuery.of(context).size.height * 0.72,
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          padding: const EdgeInsets.all(AppSpacing.md),
+          child: SafeArea(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(
+                    width: 48,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade300,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.md),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Switch Demo Vendor Store',
+                          style: AppTypography.headline(fontSize: 17, fontWeight: FontWeight.bold),
+                        ),
+                        const Text(
+                          'Test any of the 16 Batkhela shops with full product catalogs',
+                          style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                        ),
+                      ],
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.close),
+                      onPressed: () => Navigator.pop(ctx),
+                    ),
+                  ],
+                ),
+                const Divider(height: 20),
+                Expanded(
+                  child: ListView.separated(
+                    itemCount: CustomerDemoData.stores.length,
+                    separatorBuilder: (_, _) => const Divider(height: 10),
+                    itemBuilder: (context, idx) {
+                      final demoStore = CustomerDemoData.stores[idx];
+                      final isSelected = demoStore.id == ctrl.activeStoreId;
+                      return ListTile(
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        tileColor: isSelected ? AppColors.primary.withAlpha(18) : null,
+                        leading: ClipRRect(
+                          borderRadius: BorderRadius.circular(10),
+                          child: Image.network(
+                            demoStore.imageUrl ?? '',
+                            width: 48,
+                            height: 48,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, _, _) => Container(
+                              width: 48,
+                              height: 48,
+                              color: AppColors.primary.withAlpha(25),
+                              child: const Icon(Icons.storefront, color: AppColors.primary),
+                            ),
+                          ),
+                        ),
+                        title: Text(
+                          demoStore.name,
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                            color: isSelected ? AppColors.primaryDark : AppColors.textPrimary,
+                          ),
+                        ),
+                        subtitle: Text(
+                          '${demoStore.categoryName} • ${demoStore.products.length} products',
+                          style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                        ),
+                        trailing: isSelected
+                            ? const Icon(Icons.check_circle, color: AppColors.primary)
+                            : const Icon(Icons.swap_horiz, size: 18, color: AppColors.textTertiary),
+                        onTap: () {
+                          ctrl.switchActiveVendorStore(demoStore.id);
+                          Navigator.pop(ctx);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              backgroundColor: AppColors.primaryDark,
+                              content: Text('Switched active vendor to ${demoStore.name}'),
+                            ),
+                          );
+                        },
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
@@ -34,7 +149,7 @@ class _VendorDashboardScreenState extends State<VendorDashboardScreen> {
         final ctrl = VendorDemoController.instance;
 
         return Scaffold(
-          backgroundColor: AppColors.backgroundLight,
+          backgroundColor: const Color(0xFFFAF6F0),
           body: IndexedStack(
             index: _currentIndex,
             children: [
@@ -90,66 +205,97 @@ class _VendorDashboardScreenState extends State<VendorDashboardScreen> {
   // ----------------------------------------------------
   Widget _buildDashboardTab(BuildContext context, VendorDemoController ctrl) {
     return Scaffold(
-      backgroundColor: AppColors.backgroundLight,
+      backgroundColor: const Color(0xFFFAF6F0),
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
         scrolledUnderElevation: 0,
         titleSpacing: 16,
         toolbarHeight: 70,
-        title: Row(
-          children: [
-            Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(
-                color: AppColors.primary.withAlpha(20),
+        title: InkWell(
+          borderRadius: BorderRadius.circular(12),
+          onTap: () => _showVendorStoreSwitcherSheet(context, ctrl),
+          child: Row(
+            children: [
+              ClipRRect(
                 borderRadius: BorderRadius.circular(12),
-              ),
-              child: const Icon(Icons.storefront, color: AppColors.primary, size: 24),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    ctrl.store.name,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                      color: AppColors.textPrimary,
-                      letterSpacing: -0.2,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 2),
-                  Row(
-                    children: [
-                      Container(
-                        width: 8,
-                        height: 8,
+                child: ctrl.store.logoUrl != null && ctrl.store.logoUrl!.isNotEmpty
+                    ? Image.network(
+                        ctrl.store.logoUrl!,
+                        width: 44,
+                        height: 44,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, _, _) => Container(
+                          width: 44,
+                          height: 44,
+                          decoration: BoxDecoration(
+                            color: AppColors.primary.withAlpha(20),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Icon(Icons.storefront, color: AppColors.primary, size: 24),
+                        ),
+                      )
+                    : Container(
+                        width: 44,
+                        height: 44,
                         decoration: BoxDecoration(
-                          color: ctrl.store.isOpen ? AppColors.success : AppColors.error,
-                          shape: BoxShape.circle,
+                          color: AppColors.primary.withAlpha(20),
+                          borderRadius: BorderRadius.circular(12),
                         ),
+                        child: const Icon(Icons.storefront, color: AppColors.primary, size: 24),
                       ),
-                      const SizedBox(width: 6),
-                      Text(
-                        ctrl.store.isOpen ? 'ONLINE • Accepting Orders' : 'OFFLINE • Paused',
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: ctrl.store.isOpen ? AppColors.primary : AppColors.error,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
               ),
-            ),
-          ],
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Row(
+                      children: [
+                        Flexible(
+                          child: Text(
+                            ctrl.store.name,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                              color: AppColors.textPrimary,
+                              letterSpacing: -0.2,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        const Icon(Icons.keyboard_arrow_down_rounded, size: 18, color: AppColors.primary),
+                      ],
+                    ),
+                    const SizedBox(height: 2),
+                    Row(
+                      children: [
+                        Container(
+                          width: 8,
+                          height: 8,
+                          decoration: BoxDecoration(
+                            color: ctrl.store.isOpen ? AppColors.success : AppColors.error,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          ctrl.store.isOpen ? 'ONLINE • Tap to Switch Store' : 'OFFLINE • Paused',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: ctrl.store.isOpen ? AppColors.primary : AppColors.error,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
         actions: [
           StreamBuilder<int>(
@@ -476,25 +622,24 @@ class _VendorDashboardScreenState extends State<VendorDashboardScreen> {
 
   // ----------------------------------------------------
   // TAB 1: ORDERS MANAGEMENT QUEUE
-  // ----------------------------------------------------
   Widget _buildOrdersTab(BuildContext context, VendorDemoController ctrl) {
     return DefaultTabController(
       length: 5,
       child: Scaffold(
-        backgroundColor: AppColors.backgroundLight,
+        backgroundColor: const Color(0xFFFAF6F0),
         appBar: AppBar(
           backgroundColor: Colors.white,
           elevation: 0,
           scrolledUnderElevation: 0,
           title: const Text(
             'Order Management',
-            style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary),
+            style: TextStyle(fontWeight: FontWeight.w900, color: Color(0xFFC8102E)),
           ),
           bottom: const TabBar(
             isScrollable: true,
-            labelColor: AppColors.primary,
+            labelColor: Color(0xFFC8102E),
             unselectedLabelColor: Colors.grey,
-            indicatorColor: AppColors.primary,
+            indicatorColor: Color(0xFFC8102E),
             indicatorWeight: 3,
             labelStyle: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
             unselectedLabelStyle: TextStyle(fontWeight: FontWeight.normal, fontSize: 13),
@@ -513,7 +658,10 @@ class _VendorDashboardScreenState extends State<VendorDashboardScreen> {
             _buildOrdersFilteredList(context, ctrl.orders.where((o) => o.status == OrderStatus.placed).toList(), stageName: 'New Pending'),
             _buildOrdersFilteredList(
                 context, ctrl.orders.where((o) => o.status == OrderStatus.accepted || o.status == OrderStatus.preparing).toList(), stageName: 'Preparing / Cooking'),
-            _buildOrdersFilteredList(context, ctrl.orders.where((o) => o.status == OrderStatus.readyForPickup).toList(), stageName: 'Ready for Rider'),
+            _buildOrdersFilteredList(
+                context,
+                ctrl.orders.where((o) => o.status == OrderStatus.readyForPickup || o.status == OrderStatus.outForDelivery).toList(),
+                stageName: 'Ready / Out for Delivery'),
             _buildOrdersFilteredList(
                 context, ctrl.orders.where((o) => o.status == OrderStatus.delivered || o.status == OrderStatus.cancelled).toList(), stageName: 'Completed / Historical'),
           ],
@@ -534,10 +682,10 @@ class _VendorDashboardScreenState extends State<VendorDashboardScreen> {
                 width: 68,
                 height: 68,
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withAlpha(20),
+                  color: const Color(0xFFC8102E).withAlpha(20),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.receipt_long_outlined, size: 34, color: AppColors.primary),
+                child: const Icon(Icons.receipt_long_outlined, size: 34, color: Color(0xFFC8102E)),
               ),
               const SizedBox(height: 16),
               Text(
@@ -566,15 +714,17 @@ class _VendorDashboardScreenState extends State<VendorDashboardScreen> {
   }
 
   Widget _buildVendorOrderCard(BuildContext context, MarketplaceOrder order) {
+    final isVendorSelf = order.deliveryAssignmentType == 'vendor_self';
+
     return Card(
       elevation: 0,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(20),
         side: const BorderSide(color: Color(0xFFE2E8F0)),
       ),
       color: Colors.white,
       child: InkWell(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(20),
         onTap: () {
           Navigator.of(context).push(
             MaterialPageRoute<void>(
@@ -593,7 +743,7 @@ class _VendorDashboardScreenState extends State<VendorDashboardScreen> {
                 children: [
                   Text(
                     'Order #${order.orderNumber ?? order.id}',
-                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900, color: AppColors.textPrimary),
                   ),
                   MarketplaceStatusBadge.fromOrderStatus(order.status),
                 ],
@@ -603,7 +753,7 @@ class _VendorDashboardScreenState extends State<VendorDashboardScreen> {
               // Customer & Location Area
               Row(
                 children: [
-                  const Icon(Icons.location_on_outlined, size: 15, color: AppColors.primary),
+                  const Icon(Icons.location_on_outlined, size: 15, color: Color(0xFFC8102E)),
                   const SizedBox(width: 4),
                   Expanded(
                     child: Text(
@@ -616,20 +766,61 @@ class _VendorDashboardScreenState extends State<VendorDashboardScreen> {
                 ],
               ),
 
+              // Delivery Assignment Badge (Self-Delivery vs Assigned Rider)
+              if (order.assignedRiderName != null) ...[
+                const SizedBox(height: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: isVendorSelf
+                        ? const Color(0xFFFEF3C7)
+                        : AppColors.primary.withAlpha(18),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: isVendorSelf
+                          ? const Color(0xFFF59E0B)
+                          : AppColors.primary.withAlpha(50),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        isVendorSelf ? Icons.storefront_rounded : Icons.two_wheeler_rounded,
+                        size: 16,
+                        color: isVendorSelf ? const Color(0xFFB45309) : AppColors.primary,
+                      ),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Text(
+                          isVendorSelf
+                              ? 'Khud Deliver (Self): ${order.assignedRiderName}'
+                              : 'Assigned to: ${order.assignedRiderName}',
+                          style: TextStyle(
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.w800,
+                            color: isVendorSelf ? const Color(0xFFB45309) : AppColors.primary,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+
               // Items Summary
               if (order.items.isNotEmpty) ...[
                 const SizedBox(height: 6),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                   decoration: BoxDecoration(
-                    color: AppColors.backgroundLight,
+                    color: const Color(0xFFFAF6F0),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
                     order.items.map((i) => '${i.quantity}x ${i.productName}').join(', '),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: TextStyle(fontSize: 12, color: Colors.grey.shade800, fontWeight: FontWeight.w500),
+                    style: TextStyle(fontSize: 12, color: Colors.grey.shade800, fontWeight: FontWeight.w600),
                   ),
                 ),
               ],
@@ -673,13 +864,13 @@ class _VendorDashboardScreenState extends State<VendorDashboardScreen> {
                         'PKR ${order.totalAmount.toStringAsFixed(0)}',
                         style: const TextStyle(
                           fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.primary,
+                          fontWeight: FontWeight.w900,
+                          color: Color(0xFFC8102E),
                         ),
                       ),
                     ],
                   ),
-                  _buildInlineActionButtons(context, order),
+                  Flexible(child: _buildInlineActionButtons(context, order)),
                 ],
               ),
             ],
@@ -699,7 +890,7 @@ class _VendorDashboardScreenState extends State<VendorDashboardScreen> {
               foregroundColor: AppColors.error,
               side: const BorderSide(color: AppColors.error),
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
             ),
             onPressed: () {
               VendorDemoController.instance.rejectOrder(order.id);
@@ -712,11 +903,11 @@ class _VendorDashboardScreenState extends State<VendorDashboardScreen> {
           const SizedBox(width: 8),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
+              backgroundColor: const Color(0xFFC8102E),
               foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
               elevation: 0,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
             ),
             onPressed: () {
               VendorDemoController.instance.acceptOrder(order.id);
@@ -735,7 +926,7 @@ class _VendorDashboardScreenState extends State<VendorDashboardScreen> {
           foregroundColor: Colors.white,
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
           elevation: 0,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         ),
         onPressed: () {
           VendorDemoController.instance.startPreparing(order.id);
@@ -746,23 +937,304 @@ class _VendorDashboardScreenState extends State<VendorDashboardScreen> {
         child: const Text('Start Cooking', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
       );
     } else if (order.status == OrderStatus.preparing) {
-      return ElevatedButton(
-        style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.primary,
-          foregroundColor: Colors.white,
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-          elevation: 0,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-        ),
-        onPressed: () {
-          VendorDemoController.instance.markReadyForPickup(order.id);
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Order marked Ready! Dispatched notification to rider.')),
-          );
-        },
-        child: const Text('Mark Ready', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+      return Wrap(
+        spacing: 6,
+        runSpacing: 6,
+        alignment: WrapAlignment.end,
+        children: [
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              elevation: 0,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
+            onPressed: () {
+              VendorDemoController.instance.markReadyForPickup(order.id);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Order marked Ready! Choose Self-Delivery or Rider.')),
+              );
+            },
+            child: const Text('Mark Ready', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+          ),
+          ElevatedButton.icon(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFC8102E),
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+              elevation: 0,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
+            onPressed: () => _showDeliveryAssignmentSheet(context, order),
+            icon: const Icon(Icons.two_wheeler_rounded, size: 15),
+            label: const Text('Khud / Assign', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w800)),
+          ),
+        ],
+      );
+    } else if (order.status == OrderStatus.readyForPickup) {
+      return Wrap(
+        spacing: 6,
+        runSpacing: 6,
+        alignment: WrapAlignment.end,
+        children: [
+          ElevatedButton.icon(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFC8102E),
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              elevation: 0,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
+            onPressed: () async {
+              await VendorDemoController.instance.assignOrderToVendorSelf(order.id);
+              if (!context.mounted) return;
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  backgroundColor: Color(0xFFC8102E),
+                  content: Text('Assigned to Vendor Self-Delivery! Your live GPS is now broadcasting to Customer.'),
+                ),
+              );
+            },
+            icon: const Icon(Icons.storefront_rounded, size: 15),
+            label: const Text('Khud Le Jaye (Self)', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w800)),
+          ),
+          OutlinedButton.icon(
+            style: OutlinedButton.styleFrom(
+              foregroundColor: AppColors.primary,
+              side: const BorderSide(color: AppColors.primary),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
+            onPressed: () => _showDeliveryAssignmentSheet(context, order),
+            icon: const Icon(Icons.person_pin_circle_outlined, size: 15),
+            label: const Text('Assign Rider', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w800)),
+          ),
+        ],
+      );
+    } else if (order.status == OrderStatus.outForDelivery) {
+      return Wrap(
+        spacing: 6,
+        runSpacing: 6,
+        alignment: WrapAlignment.end,
+        children: [
+          OutlinedButton.icon(
+            style: OutlinedButton.styleFrom(
+              foregroundColor: const Color(0xFFC8102E),
+              side: const BorderSide(color: Color(0xFFC8102E)),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
+            onPressed: () async {
+              await VendorDemoController.instance.broadcastVendorSelfDeliveryGps(order.id);
+              if (!context.mounted) return;
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Live GPS location updated on Customer Map!')),
+              );
+            },
+            icon: const Icon(Icons.my_location, size: 14),
+            label: const Text('Send GPS', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+          ),
+          ElevatedButton.icon(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.success,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              elevation: 0,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
+            onPressed: () {
+              VendorDemoController.instance.markOrderDeliveredByVendor(order.id);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  backgroundColor: AppColors.success,
+                  content: Text('Order Marked as Delivered!'),
+                ),
+              );
+            },
+            icon: const Icon(Icons.check_circle_outline, size: 15),
+            label: const Text('Delivered', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w800)),
+          ),
+        ],
       );
     }
     return const Icon(Icons.chevron_right, color: AppColors.textTertiary);
+  }
+
+  /// Modal Sheet allowing Vendor to assign the ready order to HIMSELF ("Khud Le Jayein / Self-Delivery")
+  /// OR assign it to a Rider from the Batkhela Rider Network.
+  void _showDeliveryAssignmentSheet(BuildContext context, MarketplaceOrder order) {
+    final ctrl = VendorDemoController.instance;
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        return Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          padding: const EdgeInsets.all(20),
+          child: SafeArea(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(
+                    width: 48,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade300,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 14),
+                Text(
+                  'Assign Delivery for Order #${order.orderNumber ?? order.id}',
+                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Color(0xFF1E293B)),
+                ),
+                const SizedBox(height: 4),
+                const Text(
+                  'Order is Ready! Assign to yourself (Vendor Self-Delivery) to take it directly to the customer, or dispatch a Rider.',
+                  style: TextStyle(fontSize: 12.5, color: Color(0xFF64748B)),
+                ),
+                const SizedBox(height: 16),
+
+                // OPTION 1: VENDOR SELF-DELIVERY ("Khud Le Jayein")
+                Container(
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFFC8102E), Color(0xFF8B0018)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(18),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFFC8102E).withAlpha(65),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: ListTile(
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    leading: Container(
+                      width: 46,
+                      height: 46,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withAlpha(35),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.storefront_rounded, color: Colors.white, size: 26),
+                    ),
+                    title: const Text(
+                      'Khud Deliver Karein (Assign to Vendor Self)',
+                      style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 14.5),
+                    ),
+                    subtitle: Text(
+                      '${ctrl.store.name} khud ye order customer ko le kar jayega (Live GPS ON)',
+                      style: TextStyle(color: Colors.white.withAlpha(230), fontSize: 11.5),
+                    ),
+                    trailing: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: const Text(
+                        'Start Self',
+                        style: TextStyle(
+                          color: Color(0xFFC8102E),
+                          fontWeight: FontWeight.w900,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ),
+                    onTap: () async {
+                      Navigator.pop(ctx);
+                      await ctrl.assignOrderToVendorSelf(order.id);
+                      if (!context.mounted) return;
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          backgroundColor: const Color(0xFFC8102E),
+                          content: Text(
+                            'Order #${order.orderNumber ?? order.id} assigned to ${ctrl.store.name} (Self-Delivery)! Live GPS broadcasting to Customer.',
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+
+                const SizedBox(height: 18),
+                const Text(
+                  'OR ASSIGN TO BATKHELA RIDER:',
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w900,
+                    color: Color(0xFF64748B),
+                    letterSpacing: 0.6,
+                  ),
+                ),
+                const SizedBox(height: 8),
+
+                ...ctrl.riderApplications.map((rider) {
+                  return Container(
+                    margin: const EdgeInsets.only(bottom: 8),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFAF6F0),
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: const Color(0xFFE2E8F0)),
+                    ),
+                    child: ListTile(
+                      leading: CircleAvatar(
+                        backgroundColor: AppColors.primary.withAlpha(20),
+                        child: const Icon(Icons.two_wheeler_rounded, color: AppColors.primary),
+                      ),
+                      title: Text(
+                        rider.name,
+                        style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14),
+                      ),
+                      subtitle: Text(
+                        '${rider.vehicleType} • ${rider.rating} ★ (${rider.completedDeliveries} trips)',
+                        style: const TextStyle(fontSize: 11.5, color: Color(0xFF64748B)),
+                      ),
+                      trailing: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primary,
+                          foregroundColor: Colors.white,
+                          elevation: 0,
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        ),
+                        onPressed: () {
+                          Navigator.pop(ctx);
+                          ctrl.assignOrderToRider(
+                            order.id,
+                            riderId: rider.id,
+                            riderName: rider.name,
+                          );
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              backgroundColor: AppColors.primaryDark,
+                              content: Text('Order #${order.orderNumber ?? order.id} assigned to Rider ${rider.name}!'),
+                            ),
+                          );
+                        },
+                        child: const Text('Assign', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                      ),
+                    ),
+                  );
+                }),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 }

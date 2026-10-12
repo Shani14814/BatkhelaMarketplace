@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:marketplace_core/marketplace_core.dart' hide RiderProfile;
 
 /// Delivery Stage Progression for Rider
 enum DeliveryStage {
@@ -57,6 +58,8 @@ class RiderDeliveryAssignment {
   final String pickupAddress;
   final String customerArea;
   final String customerAddress;
+  final double? customerLat;
+  final double? customerLng;
   final String? customerNotes;
   final List<String> itemNames;
   final double cashToCollect;
@@ -78,6 +81,8 @@ class RiderDeliveryAssignment {
     required this.pickupAddress,
     required this.customerArea,
     required this.customerAddress,
+    this.customerLat,
+    this.customerLng,
     this.customerNotes,
     required this.itemNames,
     required this.cashToCollect,
@@ -134,6 +139,8 @@ class RiderDemoController extends ChangeNotifier {
   RiderDemoController._();
 
   bool isOnline = true;
+  double liveRiderLat = 34.6194;
+  double liveRiderLng = 71.9735;
 
   final RiderProfile profile = RiderProfile(
     name: 'Kamran Khan',
@@ -154,6 +161,26 @@ class RiderDemoController extends ChangeNotifier {
 
   void toggleOnlineStatus(bool online) {
     isOnline = online;
+    notifyListeners();
+  }
+
+  Future<void> updateRiderGpsAndBroadcast({double? lat, double? lng}) async {
+    if (lat != null && lng != null) {
+      liveRiderLat = lat;
+      liveRiderLng = lng;
+    } else {
+      final gps = await HostingerApiClient.instance.getCurrentDeviceGps();
+      if (gps != null) {
+        liveRiderLat = gps.latitude;
+        liveRiderLng = gps.longitude;
+      }
+    }
+    final active = activeDelivery;
+    await HostingerApiClient.instance.updateRiderLocation(
+      orderId: active?.orderId,
+      riderLat: liveRiderLat,
+      riderLng: liveRiderLng,
+    );
     notifyListeners();
   }
 
@@ -388,10 +415,21 @@ class RiderDemoController extends ChangeNotifier {
           break;
         case DeliveryStage.pickedUp:
           assignments[index].stage = DeliveryStage.onTheWay;
+          HostingerApiClient.instance.updateOrderStatus(
+            assignments[index].orderId,
+            OrderStatus.outForDelivery,
+            riderLat: liveRiderLat,
+            riderLng: liveRiderLng,
+          );
+          updateRiderGpsAndBroadcast();
           break;
         case DeliveryStage.onTheWay:
           assignments[index].stage = DeliveryStage.delivered;
           profile.completedDeliveriesCount += 1;
+          HostingerApiClient.instance.updateOrderStatus(
+            assignments[index].orderId,
+            OrderStatus.delivered,
+          );
           break;
         case DeliveryStage.delivered:
         case DeliveryStage.declined:
@@ -421,6 +459,10 @@ class RiderDemoController extends ChangeNotifier {
       assignments[index].proofPhotoUrl = proofPhotoUrl;
       assignments[index].stage = DeliveryStage.delivered;
       profile.completedDeliveriesCount += 1;
+      HostingerApiClient.instance.updateOrderStatus(
+        assignments[index].orderId,
+        OrderStatus.delivered,
+      );
       notifyListeners();
     }
   }

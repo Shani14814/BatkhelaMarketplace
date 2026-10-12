@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:marketplace_core/marketplace_core.dart';
 
@@ -519,4 +520,75 @@ class AdminDemoController extends ChangeNotifier {
     if (supportPhone != null) settings.supportPhone = supportPhone;
     notifyListeners();
   }
+
+  Timer? _syncTimer;
+  bool _syncStarted = false;
+
+  void startLiveSync() {
+    if (_syncStarted || HostingerApiClient.instance.isTestEnvironment) return;
+    _syncStarted = true;
+    unawaited(syncFromMySql());
+    _syncTimer = Timer.periodic(const Duration(seconds: 6), (_) {
+      unawaited(syncFromMySql());
+    });
+  }
+
+  void stopLiveSync() {
+    _syncTimer?.cancel();
+    _syncTimer = null;
+    _syncStarted = false;
+  }
+
+  Future<void> syncFromMySql() async {
+    if (HostingerApiClient.instance.isTestEnvironment) return;
+    final state = await HostingerApiClient.instance.fetchState();
+    if (state == null) return;
+
+    final rawOrders = state['orders'];
+    if (rawOrders is List && rawOrders.isNotEmpty) {
+      final liveOrders = <MarketplaceOrder>[];
+      for (final item in rawOrders) {
+        final map = item is Map<String, dynamic>
+            ? item
+            : Map<String, dynamic>.from(item as Map);
+        liveOrders.add(MarketplaceOrder.fromJson(map));
+      }
+      if (liveOrders.isNotEmpty) {
+        orders
+          ..clear()
+          ..addAll(liveOrders);
+      }
+    }
+
+    final rawStores = state['stores'];
+    if (rawStores is List && rawStores.isNotEmpty) {
+      for (final item in rawStores) {
+        final map = item is Map<String, dynamic>
+            ? item
+            : Map<String, dynamic>.from(item as Map);
+        final storeId = map['id']?.toString() ?? '';
+        final storeName = map['name']?.toString() ?? '';
+        if (storeId.isEmpty || storeName.isEmpty) continue;
+        final exists = vendors.any((v) => v.id == storeId || v.businessName == storeName);
+        if (!exists) {
+          vendors.add(
+            AdminVendorApplication(
+              id: storeId,
+              businessName: storeName,
+              ownerName: map['owner_name']?.toString() ?? 'Verified Batkhela Merchant',
+              phone: map['phone']?.toString() ?? '+92 345 9876543',
+              category: map['category_name']?.toString() ?? 'Retail Store',
+              address: map['address']?.toString() ?? 'Main Bazaar, Batkhela',
+              commissionRate: 10.0,
+              status: ApprovalStatus.approved,
+              appliedAt: DateTime.now().subtract(const Duration(days: 15)),
+            ),
+          );
+        }
+      }
+    }
+
+    notifyListeners();
+  }
 }
+

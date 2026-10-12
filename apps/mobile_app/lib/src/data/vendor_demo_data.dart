@@ -1,6 +1,8 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:marketplace_core/marketplace_core.dart';
 import 'customer_demo_data.dart';
+import 'rider_demo_data.dart';
 
 /// Rider Application Status
 enum RiderApplicationStatus { pending, approved, rejected }
@@ -68,6 +70,8 @@ class VendorDemoController extends ChangeNotifier {
   static final VendorDemoController instance = VendorDemoController._();
   VendorDemoController._();
 
+  String activeStoreId = 'store-1';
+
   // Store Profile
   final VendorStoreProfile store = VendorStoreProfile(
     name: 'Khyber Shinwari Tikka & Karahi',
@@ -87,6 +91,34 @@ class VendorDemoController extends ChangeNotifier {
   );
 
   bool get isCurrentVendorVerified => store.isVerified;
+
+  /// Switch active demo vendor store to any of the 16 Batkhela stores
+  void switchActiveVendorStore(String storeId) {
+    final targetIndex = CustomerDemoData.stores.indexWhere((s) => s.id == storeId);
+    if (targetIndex == -1) return;
+    final target = CustomerDemoData.stores[targetIndex];
+
+    activeStoreId = target.id;
+    store.name = target.name;
+    store.category = target.categoryName;
+    store.phone = target.phone;
+    store.address = target.address;
+    store.operatingHours = target.operatingHours;
+    store.ownerName = target.ownerName;
+    store.logoUrl = target.logoUrl ?? target.imageUrl;
+    store.bannerUrl = target.imageUrl;
+    store.isOpen = target.isOpen;
+    store.isVerified = true;
+    store.applicationStatus = 'approved';
+    store.rating = target.rating;
+    store.reviewCount = target.reviewCount;
+
+    products
+      ..clear()
+      ..addAll(target.products);
+
+    notifyListeners();
+  }
 
   void registerVendorStore({
     required String name,
@@ -346,24 +378,154 @@ class VendorDemoController extends ChangeNotifier {
     _updateOrderStatus(orderId, OrderStatus.readyForPickup);
   }
 
-  void _updateOrderStatus(String orderId, OrderStatus newStatus) {
+  /// Vendor assigns the ready order to HIMSELF ("Khud Le Jayein / Vendor Self-Delivery")
+  /// and starts Out for Delivery with live GPS broadcast to Customer!
+  Future<void> assignOrderToVendorSelf(String orderId) async {
+    double lat = RiderDemoController.instance.liveRiderLat;
+    double lng = RiderDemoController.instance.liveRiderLng;
+    final gps = await HostingerApiClient.instance.getCurrentDeviceGps();
+    if (gps != null) {
+      lat = gps.latitude;
+      lng = gps.longitude;
+      RiderDemoController.instance.liveRiderLat = lat;
+      RiderDemoController.instance.liveRiderLng = lng;
+    }
+
+    final selfDisplayName = '${store.name} (Vendor Self-Delivery)';
+    _updateOrderStatus(
+      orderId,
+      OrderStatus.outForDelivery,
+      riderLat: lat,
+      riderLng: lng,
+      assignedRiderId: activeStoreId,
+      assignedRiderName: selfDisplayName,
+      deliveryAssignmentType: 'vendor_self',
+    );
+    unawaited(
+      HostingerApiClient.instance.updateRiderLocation(
+        orderId: orderId,
+        riderLat: lat,
+        riderLng: lng,
+      ),
+    );
+  }
+
+  /// Vendor assigns the ready order to a specific Rider from the Batkhela Rider Network
+  void assignOrderToRider(
+    String orderId, {
+    required String riderId,
+    required String riderName,
+  }) {
+    _updateOrderStatus(
+      orderId,
+      OrderStatus.readyForPickup,
+      assignedRiderId: riderId,
+      assignedRiderName: '$riderName (Assigned Rider)',
+      deliveryAssignmentType: 'rider',
+    );
+
+    final ordIndex = orders.indexWhere((o) => o.id == orderId);
+    if (ordIndex != -1) {
+      final ord = orders[ordIndex];
+      final rCtrl = RiderDemoController.instance;
+      final existingIdx = rCtrl.assignments.indexWhere((a) => a.orderId == orderId);
+      if (existingIdx == -1) {
+        rCtrl.assignments.insert(
+          0,
+          RiderDeliveryAssignment(
+            id: 'DEL-${ord.orderNumber ?? ord.id}',
+            orderId: ord.id,
+            orderNumber: ord.orderNumber ?? 1000,
+            storeName: store.name,
+            pickupAddress: store.address,
+            customerArea: 'Batkhela Delivery Zone',
+            customerAddress: ord.deliveryAddress,
+            customerLat: ord.deliveryLat,
+            customerLng: ord.deliveryLng,
+            customerNotes: ord.customerNotes,
+            itemNames: ord.items.isNotEmpty
+                ? ord.items.map((i) => '${i.quantity}x ${i.productName}').toList()
+                : ['Order #${ord.orderNumber ?? ord.id}'],
+            cashToCollect: ord.totalAmount,
+            deliveryFeeEarnings: ord.deliveryFee > 0 ? ord.deliveryFee : 100.0,
+            distanceKm: 2.1,
+            estimatedMinutes: 8,
+            stage: DeliveryStage.accepted,
+            createdAt: DateTime.now(),
+          ),
+        );
+      } else {
+        rCtrl.assignments[existingIdx].stage = DeliveryStage.accepted;
+      }
+      rCtrl.notifyListeners();
+    }
+  }
+
+  /// Broadcast Vendor's live GPS while Vendor is personally delivering the order
+  Future<void> broadcastVendorSelfDeliveryGps(String orderId) async {
+    final gps = await HostingerApiClient.instance.getCurrentDeviceGps();
+    final lat = gps?.latitude ?? RiderDemoController.instance.liveRiderLat;
+    final lng = gps?.longitude ?? RiderDemoController.instance.liveRiderLng;
+    RiderDemoController.instance.liveRiderLat = lat;
+    RiderDemoController.instance.liveRiderLng = lng;
+
+    final idx = orders.indexWhere((o) => o.id == orderId);
+    if (idx != -1) {
+      orders[idx] = orders[idx].copyWith(riderLat: lat, riderLng: lng);
+    }
+    final cIdx = CustomerDemoData.demoOrders.indexWhere((o) => o.id == orderId);
+    if (cIdx != -1) {
+      CustomerDemoData.demoOrders[cIdx] =
+          CustomerDemoData.demoOrders[cIdx].copyWith(riderLat: lat, riderLng: lng);
+    }
+    await HostingerApiClient.instance.updateRiderLocation(
+      orderId: orderId,
+      riderLat: lat,
+      riderLng: lng,
+    );
+    notifyListeners();
+  }
+
+  /// Vendor completes delivery and marks order Delivered
+  void markOrderDeliveredByVendor(String orderId) {
+    _updateOrderStatus(orderId, OrderStatus.delivered);
+  }
+
+  void _updateOrderStatus(
+    String orderId,
+    OrderStatus newStatus, {
+    double? riderLat,
+    double? riderLng,
+    String? assignedRiderId,
+    String? assignedRiderName,
+    String? deliveryAssignmentType,
+  }) {
     final index = orders.indexWhere((o) => o.id == orderId);
     if (index != -1) {
       final old = orders[index];
-      orders[index] = MarketplaceOrder(
-        id: old.id,
-        orderNumber: old.orderNumber,
-        customerId: old.customerId,
-        vendorId: old.vendorId,
-        subtotal: old.subtotal,
-        deliveryFee: old.deliveryFee,
-        platformFee: old.platformFee,
-        totalAmount: old.totalAmount,
+      final updated = old.copyWith(
         status: newStatus,
-        deliveryAddress: old.deliveryAddress,
-        customerNotes: old.customerNotes,
-        items: old.items,
-        createdAt: old.createdAt,
+        riderLat: riderLat,
+        riderLng: riderLng,
+        assignedRiderId: assignedRiderId,
+        assignedRiderName: assignedRiderName,
+        deliveryAssignmentType: deliveryAssignmentType,
+      );
+      orders[index] = updated;
+
+      final cIdx = CustomerDemoData.demoOrders.indexWhere((o) => o.id == orderId);
+      if (cIdx != -1) {
+        CustomerDemoData.demoOrders[cIdx] = updated;
+      }
+
+      HostingerApiClient.instance.updateOrderStatus(
+        orderId,
+        newStatus,
+        riderLat: riderLat,
+        riderLng: riderLng,
+        assignedRiderId: assignedRiderId ?? updated.assignedRiderId,
+        assignedRiderName: assignedRiderName ?? updated.assignedRiderName,
+        deliveryAssignmentType: deliveryAssignmentType ?? updated.deliveryAssignmentType,
       );
       notifyListeners();
     }
@@ -491,6 +653,7 @@ class VendorDemoController extends ChangeNotifier {
         imageUrl: old.imageUrl,
         createdAt: old.createdAt,
       );
+      HostingerApiClient.instance.saveProduct(products[index]);
       _syncWithCustomerCatalog();
       notifyListeners();
     }
@@ -507,7 +670,7 @@ class VendorDemoController extends ChangeNotifier {
   }) {
     final newProduct = Product(
       id: 'prod-${DateTime.now().millisecondsSinceEpoch}',
-      vendorId: 'store-1',
+      vendorId: activeStoreId,
       name: name,
       category: category,
       price: price,
@@ -519,6 +682,7 @@ class VendorDemoController extends ChangeNotifier {
       createdAt: DateTime.now(),
     );
     products.insert(0, newProduct);
+    HostingerApiClient.instance.saveProduct(newProduct);
     _syncWithCustomerCatalog();
     notifyListeners();
   }
@@ -551,6 +715,7 @@ class VendorDemoController extends ChangeNotifier {
         imageUrl: imageUrl ?? old.imageUrl,
         createdAt: old.createdAt,
       );
+      HostingerApiClient.instance.saveProduct(products[index]);
       _syncWithCustomerCatalog();
       notifyListeners();
     }
@@ -558,22 +723,22 @@ class VendorDemoController extends ChangeNotifier {
 
   void deleteProduct(String id) {
     products.removeWhere((p) => p.id == id);
+    HostingerApiClient.instance.deleteProduct(id);
     _syncWithCustomerCatalog();
     notifyListeners();
   }
 
   void _syncWithCustomerCatalog() {
-    // Synchronize Store 1 in Customer Demo Data with current Vendor state
-    if (CustomerDemoData.stores.isNotEmpty) {
-      final oldStore = CustomerDemoData.stores[0];
-      CustomerDemoData.stores[0] = DemoStore(
+    // Synchronize active store in Customer Demo Data with current Vendor state
+    final idx = CustomerDemoData.stores.indexWhere((s) => s.id == activeStoreId);
+    if (idx != -1) {
+      final oldStore = CustomerDemoData.stores[idx];
+      CustomerDemoData.stores[idx] = DemoStore(
         id: oldStore.id,
         name: store.name,
         categoryId: oldStore.categoryId,
         categoryName: store.category,
-        description: store.name.contains('Shinwari')
-            ? 'Authentic Mutton Karahi, Chapli Kabab, Namkeen Tikka & Hot Naan'
-            : store.category,
+        description: oldStore.description,
         address: store.address,
         rating: store.rating,
         reviewCount: store.reviewCount,
@@ -582,7 +747,14 @@ class VendorDemoController extends ChangeNotifier {
         badges: oldStore.badges,
         isOpen: store.isOpen,
         imageUrl: store.bannerUrl ?? oldStore.imageUrl,
+        logoUrl: store.logoUrl ?? oldStore.logoUrl,
+        ownerName: store.ownerName ?? oldStore.ownerName,
+        phone: store.phone,
+        operatingHours: store.operatingHours,
         products: List<Product>.from(products),
+      );
+      HostingerApiClient.instance.saveStore(
+        CustomerDemoData.stores[idx].toJson(sortOrder: idx),
       );
     }
   }
@@ -660,6 +832,7 @@ class VendorDemoController extends ChangeNotifier {
           o.status == OrderStatus.placed ||
           o.status == OrderStatus.accepted ||
           o.status == OrderStatus.preparing ||
-          o.status == OrderStatus.readyForPickup)
+          o.status == OrderStatus.readyForPickup ||
+          o.status == OrderStatus.outForDelivery)
       .length;
 }

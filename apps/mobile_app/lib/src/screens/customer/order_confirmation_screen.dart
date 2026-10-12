@@ -1,10 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:marketplace_core/marketplace_core.dart';
+import '../../data/customer_demo_data.dart';
+import '../../data/rider_demo_data.dart';
+import '../../services/live_sync_controller.dart';
+import '../../widgets/route_navigation_preview.dart';
 import 'customer_home_screen.dart';
 
-/// Order Confirmation Screen displayed right after order placement
+/// Soft, Clean Order Confirmation & Live Tracking Screen displayed right after order placement
 class OrderConfirmationScreen extends StatelessWidget {
   final MarketplaceOrder order;
+
+  static const Color _bgCream = Color(0xFFFAF6F0);
+  static const Color _brandRed = Color(0xFFC8102E);
+  static const Color _brandRedDark = Color(0xFF9E0B22);
+  static const Color _textDark = Color(0xFF1E1915);
+  static const Color _textMuted = Color(0xFF6E655F);
+  static const Color _softBorder = Color(0xFFEDE6DC);
 
   const OrderConfirmationScreen({
     super.key,
@@ -13,201 +24,36 @@ class OrderConfirmationScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        automaticallyImplyLeading: false,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.close, color: AppColors.textPrimary),
-            onPressed: () {
-              Navigator.pushAndRemoveUntil<void>(
-                context,
-                MaterialPageRoute<void>(builder: (context) => const CustomerHomeScreen()),
-                (route) => false,
-              );
-            },
-          ),
-        ],
-      ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
-          child: Column(
-            children: [
-              const SizedBox(height: AppSpacing.md),
+    return AnimatedBuilder(
+      animation: LiveSyncController.instance,
+      builder: (context, _) {
+        final liveOrder = CustomerDemoData.demoOrders.firstWhere(
+          (o) => o.id == order.id,
+          orElse: () => order,
+        );
+        final rLat = liveOrder.riderLat ?? RiderDemoController.instance.liveRiderLat;
+        final rLng = liveOrder.riderLng ?? RiderDemoController.instance.liveRiderLng;
+        final isSelfDelivery = liveOrder.deliveryAssignmentType == 'vendor_self';
 
-              // Success Animated Icon
-              Container(
-                width: 90,
-                height: 90,
-                decoration: const BoxDecoration(
-                  color: AppColors.successLight,
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(Icons.check_circle_rounded, size: 54, color: AppColors.success),
+        return Scaffold(
+          backgroundColor: _bgCream,
+          appBar: AppBar(
+            backgroundColor: _bgCream,
+            elevation: 0,
+            automaticallyImplyLeading: false,
+            title: Text(
+              'Order #${liveOrder.orderNumber ?? liveOrder.id.substring(liveOrder.id.length - 4)}',
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w900,
+                color: _textDark,
               ),
-              const SizedBox(height: AppSpacing.lg),
-
-              Text(
-                'Order Placed Successfully!',
-                style: AppTypography.headline(fontSize: 22, fontWeight: FontWeight.bold),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: AppSpacing.xs),
-              Text(
-                'Order #${order.orderNumber ?? order.id.substring(order.id.length - 4)}',
-                style: const TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.primary,
-                ),
-              ),
-              const SizedBox(height: AppSpacing.xs),
-              const Text(
-                'Your order has been transmitted to the store and is being prepared for Batkhela express rider dispatch.',
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 13, color: AppColors.textSecondary, height: 1.4),
-              ),
-
-              const SizedBox(height: AppSpacing.xl),
-
-              // Delivery Status Card
-              Container(
-                padding: const EdgeInsets.all(AppSpacing.md),
-                decoration: BoxDecoration(
-                  color: AppColors.backgroundLight,
-                  borderRadius: AppRadius.roundedLg,
-                  border: Border.all(color: AppColors.borderLight),
-                ),
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(AppSpacing.sm),
-                      decoration: const BoxDecoration(
-                        color: AppColors.primary,
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(Icons.delivery_dining, color: Colors.white, size: 24),
-                    ),
-                    const SizedBox(width: AppSpacing.md),
-                    const Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Estimated Delivery',
-                            style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
-                          ),
-                          Text(
-                            '25 - 35 Minutes',
-                            style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: const BoxDecoration(
-                        color: AppColors.primaryLight,
-                        borderRadius: AppRadius.roundedSm,
-                      ),
-                      child: const Text(
-                        'On Schedule',
-                        style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.primaryDark),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: AppSpacing.lg),
-
-              // Order Summary Breakdown
-              Container(
-                padding: const EdgeInsets.all(AppSpacing.md),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: AppRadius.roundedLg,
-                  border: Border.all(color: AppColors.borderLight),
-                  boxShadow: AppElevation.softSubtle,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Order Summary',
-                      style: AppTypography.headline(fontSize: 14, fontWeight: FontWeight.bold),
-                    ),
-                    const Divider(height: 16),
-                    ...order.items.map((item) {
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 4),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              '${item.quantity}x ${item.productName}',
-                              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
-                            ),
-                            Text(
-                              'PKR ${item.totalPrice.toStringAsFixed(0)}',
-                              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
-                            ),
-                          ],
-                        ),
-                      );
-                    }),
-                    const Divider(height: 16),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text('Delivery Address', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
-                        Expanded(
-                          child: Text(
-                            order.deliveryAddress,
-                            textAlign: TextAlign.end,
-                            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 6),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text('Payment Mode', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
-                        Text(
-                          order.paymentMethod == 'cash_on_delivery' ? 'Cash on Delivery (COD)' : order.paymentMethod.toUpperCase(),
-                          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.success),
-                        ),
-                      ],
-                    ),
-                    const Divider(height: 16),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text('Total Amount Paid/Due', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
-                        Text(
-                          'PKR ${order.totalAmount.toStringAsFixed(0)}',
-                          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.primary),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: AppSpacing.xxl),
-
-              // Action Buttons
-              SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: ElevatedButton.icon(
+            ),
+            actions: [
+              Padding(
+                padding: const EdgeInsets.only(right: 12),
+                child: IconButton(
+                  icon: const Icon(Icons.close_rounded, color: _textDark),
                   onPressed: () {
                     Navigator.pushAndRemoveUntil<void>(
                       context,
@@ -215,20 +61,236 @@ class OrderConfirmationScreen extends StatelessWidget {
                       (route) => false,
                     );
                   },
-                  icon: const Icon(Icons.arrow_back),
-                  label: const Text('Back to Home & Shop More', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    foregroundColor: Colors.white,
-                    shape: const RoundedRectangleBorder(borderRadius: AppRadius.roundedFull),
-                  ),
                 ),
               ),
-              const SizedBox(height: AppSpacing.lg),
             ],
           ),
-        ),
-      ),
+          body: SafeArea(
+            child: SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
+              padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
+              child: Column(
+                children: [
+                  // 1. Soft Confirmation Header Card
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(24),
+                      border: Border.all(color: _softBorder),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withAlpha(8),
+                          blurRadius: 16,
+                          offset: const Offset(0, 6),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      children: [
+                        Container(
+                          width: 68,
+                          height: 68,
+                          decoration: const BoxDecoration(
+                            color: Color(0xFFDCFCE7),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.check_circle_rounded,
+                            size: 42,
+                            color: Color(0xFF15803D),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        const Text(
+                          'Order Confirmed!',
+                          style: TextStyle(
+                            fontSize: 21,
+                            fontWeight: FontWeight.w900,
+                            color: _textDark,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFFEE2E2),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text(
+                            liveOrder.status.displayName.toUpperCase(),
+                            style: const TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w900,
+                              color: _brandRed,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                        ),
+                        if (liveOrder.assignedRiderName != null &&
+                            liveOrder.assignedRiderName!.isNotEmpty) ...[
+                          const SizedBox(height: 8),
+                          Text(
+                            isSelfDelivery
+                                ? '🏪 ${liveOrder.assignedRiderName}'
+                                : '🛵 ${liveOrder.assignedRiderName}',
+                            style: const TextStyle(
+                              fontSize: 12.5,
+                              fontWeight: FontWeight.w800,
+                              color: Color(0xFF15803D),
+                            ),
+                          ),
+                        ],
+                        const SizedBox(height: 8),
+                        const Text(
+                          'Your order has been sent to the shop and live GPS tracking is active below.',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(fontSize: 12.5, color: _textMuted, height: 1.35),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // 2. Clean Live Interactive Map
+                  RouteNavigationPreview(
+                    originTitle: 'Merchant Shop',
+                    originAddress: 'Main Bazaar, Batkhela',
+                    destinationTitle: 'Delivery Pin',
+                    destinationAddress: liveOrder.deliveryAddress,
+                    distanceKm: 2.1,
+                    estimatedMinutes: 12,
+                    originLat: 34.6175,
+                    originLng: 71.9712,
+                    destinationLat: liveOrder.deliveryLat ?? 34.6186,
+                    destinationLng: liveOrder.deliveryLng ?? 71.9723,
+                    riderLat: rLat,
+                    riderLng: rLng,
+                    isOutForDelivery: liveOrder.status == OrderStatus.outForDelivery,
+                  ),
+                  const SizedBox(height: 16),
+
+                  // 3. Soft Receipt Order Summary Card
+                  Container(
+                    padding: const EdgeInsets.all(18),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(24),
+                      border: Border.all(color: _softBorder),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Order Details',
+                          style: TextStyle(
+                            fontSize: 15.5,
+                            fontWeight: FontWeight.w900,
+                            color: _textDark,
+                          ),
+                        ),
+                        const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 12),
+                          child: Divider(height: 1, color: _softBorder),
+                        ),
+                        ...liveOrder.items.map((item) {
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 8),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    '${item.quantity}x ${item.productName}',
+                                    style: const TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w700,
+                                      color: _textDark,
+                                    ),
+                                  ),
+                                ),
+                                Text(
+                                  'Rs. ${item.totalPrice.toStringAsFixed(0)}',
+                                  style: const TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w800,
+                                    color: _textDark,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        }),
+                        const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 10),
+                          child: Divider(height: 1, color: _softBorder),
+                        ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text(
+                              'Total Amount',
+                              style: TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w900,
+                                color: _textDark,
+                              ),
+                            ),
+                            Text(
+                              'Rs. ${liveOrder.totalAmount.toStringAsFixed(0)}',
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w900,
+                                color: _brandRed,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+
+                  // 4. Back to Home Button
+                  SizedBox(
+                    width: double.infinity,
+                    height: 52,
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(colors: [_brandRed, _brandRedDark]),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: ElevatedButton.icon(
+                        onPressed: () {
+                          Navigator.pushAndRemoveUntil<void>(
+                            context,
+                            MaterialPageRoute<void>(builder: (context) => const CustomerHomeScreen()),
+                            (route) => false,
+                          );
+                        },
+                        icon: const Icon(Icons.home_rounded, size: 19),
+                        label: const Text(
+                          'Back to Marketplace Home',
+                          style: TextStyle(fontWeight: FontWeight.w900, fontSize: 15),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.transparent,
+                          foregroundColor: Colors.white,
+                          shadowColor: Colors.transparent,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }

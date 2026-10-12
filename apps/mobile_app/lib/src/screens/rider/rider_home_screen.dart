@@ -36,6 +36,9 @@ class _RiderHomeScreenState extends State<RiderHomeScreen> {
 
     if (ctrl.isOnline) {
       tracker.startTracking('RIDER-DEMO-001');
+      if (!HostingerApiClient.instance.isTestEnvironment) {
+        unawaited(ctrl.updateRiderGpsAndBroadcast());
+      }
     }
 
     _locationSub = tracker.coordinatesStream.listen((coords) {
@@ -43,6 +46,14 @@ class _RiderHomeScreenState extends State<RiderHomeScreen> {
         setState(() {
           _liveCoords = coords;
         });
+        if (!HostingerApiClient.instance.isTestEnvironment) {
+          unawaited(
+            ctrl.updateRiderGpsAndBroadcast(
+              lat: coords.latitude,
+              lng: coords.longitude,
+            ),
+          );
+        }
       }
     });
   }
@@ -62,7 +73,7 @@ class _RiderHomeScreenState extends State<RiderHomeScreen> {
         final ctrl = RiderDemoController.instance;
 
         return Scaffold(
-          backgroundColor: AppColors.backgroundLight,
+          backgroundColor: const Color(0xFFFAF6F0),
           body: IndexedStack(
             index: _currentIndex,
             children: [
@@ -112,7 +123,7 @@ class _RiderHomeScreenState extends State<RiderHomeScreen> {
     final offeredCount = ctrl.offeredAssignments.length;
 
     return Scaffold(
-      backgroundColor: AppColors.backgroundLight,
+      backgroundColor: const Color(0xFFFAF6F0),
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
@@ -124,10 +135,14 @@ class _RiderHomeScreenState extends State<RiderHomeScreen> {
               width: 44,
               height: 44,
               decoration: BoxDecoration(
-                color: AppColors.primary.withAlpha(20),
-                borderRadius: BorderRadius.circular(12),
+                gradient: const LinearGradient(
+                  colors: [Color(0xFFC8102E), Color(0xFF8B0018)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(14),
               ),
-              child: const Icon(Icons.two_wheeler, color: AppColors.primary, size: 24),
+              child: const Icon(Icons.two_wheeler, color: Colors.white, size: 24),
             ),
             const SizedBox(width: 12),
             Expanded(

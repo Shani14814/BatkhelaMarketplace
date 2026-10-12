@@ -52,9 +52,13 @@ class VendorOrderDetailScreen extends StatelessWidget {
               _buildPaymentSummaryCard(context, liveOrder),
               const SizedBox(height: 16),
 
+              // Delivery Assignment & Self-Delivery Control Card
+              _buildDeliveryAssignmentCard(context, liveOrder),
+              const SizedBox(height: 16),
+
               // Status Timeline / Instructions
               _buildTimelineCard(context, liveOrder),
-              const SizedBox(height: 80),
+              const SizedBox(height: 100),
             ],
           ),
           bottomSheet: _buildBottomActionBar(context, liveOrder),
@@ -384,6 +388,155 @@ class VendorOrderDetailScreen extends StatelessWidget {
     );
   }
 
+  Widget _buildDeliveryAssignmentCard(BuildContext context, MarketplaceOrder liveOrder) {
+    final ctrl = VendorDemoController.instance;
+    final isVendorSelf = liveOrder.deliveryAssignmentType == 'vendor_self';
+
+    return Card(
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(18),
+        side: BorderSide(color: const Color(0xFFC8102E).withAlpha(45)),
+      ),
+      color: Colors.white,
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFC8102E).withAlpha(20),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(Icons.two_wheeler_rounded, color: Color(0xFFC8102E), size: 20),
+                ),
+                const SizedBox(width: 10),
+                const Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Delivery Assignment (Self or Rider)',
+                        style: TextStyle(fontSize: 15, fontWeight: FontWeight.w900),
+                      ),
+                      Text(
+                        'Jab order ready ho to khud deliver karein ya Rider ko assign karein',
+                        style: TextStyle(fontSize: 11.5, color: AppColors.textSecondary),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            if (liveOrder.assignedRiderName != null) ...[
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: isVendorSelf ? const Color(0xFFFEF3C7) : AppColors.primary.withAlpha(15),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: isVendorSelf ? const Color(0xFFF59E0B) : AppColors.primary.withAlpha(40),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      isVendorSelf ? Icons.storefront_rounded : Icons.two_wheeler_rounded,
+                      color: isVendorSelf ? const Color(0xFFB45309) : AppColors.primary,
+                      size: 20,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        isVendorSelf
+                            ? 'Vendor Self-Delivery Active: ${liveOrder.assignedRiderName}'
+                            : 'Assigned Rider: ${liveOrder.assignedRiderName}',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w800,
+                          fontSize: 12.5,
+                          color: isVendorSelf ? const Color(0xFFB45309) : AppColors.primary,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 12),
+            ],
+            Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFC8102E),
+                      foregroundColor: Colors.white,
+                      elevation: 0,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                    onPressed: () async {
+                      await ctrl.assignOrderToVendorSelf(liveOrder.id);
+                      if (!context.mounted) return;
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          backgroundColor: const Color(0xFFC8102E),
+                          content: Text(
+                            'Order #${liveOrder.orderNumber ?? liveOrder.id} assigned to ${ctrl.store.name} (Self-Delivery)! Live GPS ON.',
+                          ),
+                        ),
+                      );
+                    },
+                    icon: const Icon(Icons.storefront_rounded, size: 17),
+                    label: const Text(
+                      'Khud Le Jaye (Self)',
+                      style: TextStyle(fontWeight: FontWeight.w800, fontSize: 12),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: OutlinedButton.icon(
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: AppColors.primary,
+                      side: const BorderSide(color: AppColors.primary),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                    onPressed: () {
+                      final firstRider = ctrl.riderApplications.first;
+                      ctrl.assignOrderToRider(
+                        liveOrder.id,
+                        riderId: firstRider.id,
+                        riderName: firstRider.name,
+                      );
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          backgroundColor: AppColors.primaryDark,
+                          content: Text('Order assigned to Rider ${firstRider.name}!'),
+                        ),
+                      );
+                    },
+                    icon: const Icon(Icons.two_wheeler_rounded, size: 17),
+                    label: const Text(
+                      'Assign Rider',
+                      style: TextStyle(fontWeight: FontWeight.w800, fontSize: 12),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget? _buildBottomActionBar(BuildContext context, MarketplaceOrder liveOrder) {
     if (liveOrder.status == OrderStatus.placed) {
       return Container(
@@ -415,7 +568,7 @@ class VendorOrderDetailScreen extends StatelessWidget {
                 flex: 2,
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
+                    backgroundColor: const Color(0xFFC8102E),
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     padding: const EdgeInsets.symmetric(vertical: 14),
@@ -464,24 +617,132 @@ class VendorOrderDetailScreen extends StatelessWidget {
         color: Colors.white,
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         child: SafeArea(
+          child: Row(
+            children: [
+              Expanded(
+                child: ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                  ),
+                  onPressed: () {
+                    VendorDemoController.instance.markReadyForPickup(liveOrder.id);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Order marked Ready!')),
+                    );
+                  },
+                  icon: const Icon(Icons.check_circle_outline, size: 18),
+                  label: const Text('Mark Ready for Rider Pickup', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFFC8102E),
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                  ),
+                  onPressed: () async {
+                    await VendorDemoController.instance.assignOrderToVendorSelf(liveOrder.id);
+                    if (!context.mounted) return;
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        backgroundColor: Color(0xFFC8102E),
+                        content: Text('Assigned to Vendor Self-Delivery! Live GPS ON.'),
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.storefront_rounded, size: 18),
+                  label: const Text('Khud Deliver (Self)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    } else if (liveOrder.status == OrderStatus.readyForPickup) {
+      return Container(
+        color: Colors.white,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        child: SafeArea(
           child: SizedBox(
             width: double.infinity,
             child: ElevatedButton.icon(
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
+                backgroundColor: const Color(0xFFC8102E),
                 foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 padding: const EdgeInsets.symmetric(vertical: 14),
               ),
-              onPressed: () {
-                VendorDemoController.instance.markReadyForPickup(liveOrder.id);
+              onPressed: () async {
+                await VendorDemoController.instance.assignOrderToVendorSelf(liveOrder.id);
+                if (!context.mounted) return;
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Order marked Ready! Rider notified.')),
+                  const SnackBar(
+                    backgroundColor: Color(0xFFC8102E),
+                    content: Text('Started Vendor Self-Delivery! Customer can track your live GPS.'),
+                  ),
                 );
               },
-              icon: const Icon(Icons.check_circle_outline),
-              label: const Text('Mark Ready for Rider Pickup', style: TextStyle(fontWeight: FontWeight.bold)),
+              icon: const Icon(Icons.two_wheeler_rounded),
+              label: const Text('Khud Le Jayein (Start Vendor Self-Delivery)', style: TextStyle(fontWeight: FontWeight.bold)),
             ),
+          ),
+        ),
+      );
+    } else if (liveOrder.status == OrderStatus.outForDelivery) {
+      return Container(
+        color: Colors.white,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        child: SafeArea(
+          child: Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: const Color(0xFFC8102E),
+                    side: const BorderSide(color: Color(0xFFC8102E)),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                  ),
+                  onPressed: () async {
+                    await VendorDemoController.instance.broadcastVendorSelfDeliveryGps(liveOrder.id);
+                    if (!context.mounted) return;
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Live GPS sent to Customer map!')),
+                    );
+                  },
+                  icon: const Icon(Icons.my_location, size: 18),
+                  label: const Text('Update My GPS', style: TextStyle(fontWeight: FontWeight.bold)),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.success,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                  ),
+                  onPressed: () {
+                    VendorDemoController.instance.markOrderDeliveredByVendor(liveOrder.id);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        backgroundColor: AppColors.success,
+                        content: Text('Order Marked as Delivered!'),
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.check_circle_outline, size: 18),
+                  label: const Text('Mark Delivered', style: TextStyle(fontWeight: FontWeight.bold)),
+                ),
+              ),
+            ],
           ),
         ),
       );

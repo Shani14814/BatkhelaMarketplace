@@ -42,6 +42,7 @@ export 'src/services/location/rider_location_tracker.dart';
 export 'src/services/notification/push_notification_adapter.dart';
 export 'src/services/notification/notification_controller.dart';
 export 'src/services/cart_controller.dart';
+export 'src/services/hostinger_api_client.dart';
 
 export 'src/repositories/customer_repository.dart';
 export 'src/repositories/vendor_repository.dart';

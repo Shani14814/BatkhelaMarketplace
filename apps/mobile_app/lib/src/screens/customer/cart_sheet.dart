@@ -2,9 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:marketplace_core/marketplace_core.dart';
 import 'checkout_screen.dart';
 
-/// Modal bottom sheet displaying the current active shopping cart items
+/// Soft, modern modal bottom sheet displaying the current active shopping cart items
 class CartSheet extends StatelessWidget {
   const CartSheet({super.key});
+
+  static const Color _bgCream = Color(0xFFFAF6F0);
+  static const Color _brandRed = Color(0xFFC8102E);
+  static const Color _brandRedDark = Color(0xFF9E0B22);
+  static const Color _textDark = Color(0xFF1E1915);
+  static const Color _textMuted = Color(0xFF6E655F);
+  static const Color _softBorder = Color(0xFFEDE6DC);
 
   static Future<void> show(BuildContext context) {
     return showModalBottomSheet<void>(
@@ -19,11 +26,11 @@ class CartSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       constraints: BoxConstraints(
-        maxHeight: MediaQuery.of(context).size.height * 0.85,
+        maxHeight: MediaQuery.of(context).size.height * 0.86,
       ),
       decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        color: _bgCream,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
       child: SafeArea(
         top: false,
@@ -42,51 +49,61 @@ class CartSheet extends StatelessWidget {
 
   Widget _buildEmptyCart(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.all(AppSpacing.xl),
+      padding: const EdgeInsets.all(24),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           Container(
-            width: 48,
+            width: 44,
             height: 4,
             decoration: BoxDecoration(
               color: Colors.grey.shade300,
               borderRadius: BorderRadius.circular(2),
             ),
           ),
-          const SizedBox(height: AppSpacing.xxl),
+          const SizedBox(height: 28),
           Container(
-            width: 80,
-            height: 80,
-            decoration: BoxDecoration(
-              color: AppColors.primary.withAlpha(20),
+            width: 78,
+            height: 78,
+            decoration: const BoxDecoration(
+              color: Color(0xFFFEE2E2),
               shape: BoxShape.circle,
             ),
-            child: const Icon(Icons.shopping_bag_outlined, size: 40, color: AppColors.primary),
+            child: const Icon(Icons.shopping_bag_outlined, size: 38, color: _brandRed),
           ),
-          const SizedBox(height: AppSpacing.lg),
-          Text(
+          const SizedBox(height: 16),
+          const Text(
             'Your Cart is Empty',
-            style: AppTypography.headline(fontSize: 20, fontWeight: FontWeight.bold),
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.w900,
+              color: _textDark,
+            ),
           ),
-          const SizedBox(height: AppSpacing.xs),
+          const SizedBox(height: 6),
           const Text(
             'Browse Batkhela restaurants, grocery stores & pharmacies to add items to your cart.',
             textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 13, color: AppColors.textSecondary, height: 1.4),
+            style: TextStyle(fontSize: 13, color: _textMuted, height: 1.4),
           ),
-          const SizedBox(height: AppSpacing.xxl),
+          const SizedBox(height: 24),
           SizedBox(
             width: double.infinity,
-            height: 48,
+            height: 50,
             child: ElevatedButton(
               onPressed: () => Navigator.pop(context),
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
+                backgroundColor: _brandRed,
                 foregroundColor: Colors.white,
-                shape: const RoundedRectangleBorder(borderRadius: AppRadius.roundedFull),
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(18),
+                ),
               ),
-              child: const Text('Explore Batkhela Marketplace', style: TextStyle(fontWeight: FontWeight.bold)),
+              child: const Text(
+                'Explore Batkhela Marketplace',
+                style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14),
+              ),
             ),
           ),
         ],
@@ -105,7 +122,7 @@ class CartSheet extends StatelessWidget {
         Center(
           child: Container(
             margin: const EdgeInsets.only(top: 12, bottom: 8),
-            width: 48,
+            width: 44,
             height: 4,
             decoration: BoxDecoration(
               color: Colors.grey.shade300,
@@ -116,7 +133,7 @@ class CartSheet extends StatelessWidget {
 
         // Header Title
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.xs),
+          padding: const EdgeInsets.fromLTRB(20, 4, 16, 10),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -124,201 +141,261 @@ class CartSheet extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Your Order Cart (${cart.totalItemCount} items)',
-                    style: AppTypography.headline(fontSize: 18, fontWeight: FontWeight.bold),
+                    'Your Cart (${cart.totalItemCount})',
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w900,
+                      color: _textDark,
+                    ),
                   ),
                   if (cart.currentVendorName != null) ...[
                     const SizedBox(height: 2),
                     Text(
-                      'From: ${cart.currentVendorName}',
-                      style: const TextStyle(fontSize: 12, color: AppColors.primary, fontWeight: FontWeight.w600),
+                      'Shop: ${cart.currentVendorName}',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: _brandRed,
+                        fontWeight: FontWeight.w800,
+                      ),
                     ),
                   ],
                 ],
               ),
-              IconButton(
-                icon: const Icon(Icons.delete_sweep_outlined, color: AppColors.coral),
-                tooltip: 'Clear Cart',
-                onPressed: () {
-                  CartController.instance.clear();
-                },
+              TextButton.icon(
+                onPressed: () => CartController.instance.clear(),
+                icon: const Icon(Icons.delete_outline_rounded, size: 17, color: _brandRed),
+                label: const Text(
+                  'Clear',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w800,
+                    color: _brandRed,
+                  ),
+                ),
               ),
             ],
           ),
         ),
-        const Divider(height: 16),
 
         // Items List
         Flexible(
           child: ListView.separated(
             shrinkWrap: true,
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+            physics: const BouncingScrollPhysics(),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
             itemCount: items.length,
-            separatorBuilder: (_, index) => const Divider(height: 16),
+            separatorBuilder: (_, _) => const SizedBox(height: 10),
             itemBuilder: (context, index) {
               final item = items[index];
-              return Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  MarketplaceProductImage(
-                    imageUrl: item.product.imageUrl,
-                    productName: item.product.name,
-                    category: item.product.category,
-                    width: 52,
-                    height: 52,
-                    borderRadius: AppRadius.roundedSm,
-                  ),
-                  const SizedBox(width: AppSpacing.md),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          item.product.name,
-                          style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        if (item.specialInstructions != null && item.specialInstructions!.isNotEmpty) ...[
-                          const SizedBox(height: 2),
+              return Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(18),
+                  border: Border.all(color: _softBorder),
+                ),
+                child: Row(
+                  children: [
+                    MarketplaceProductImage(
+                      imageUrl: item.product.imageUrl,
+                      productName: item.product.name,
+                      category: item.product.category,
+                      width: 54,
+                      height: 54,
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
                           Text(
-                            'Note: ${item.specialInstructions}',
-                            style: const TextStyle(fontSize: 11, color: AppColors.textTertiary, fontStyle: FontStyle.italic),
+                            item.product.name,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w800,
+                              fontSize: 13.5,
+                              color: _textDark,
+                            ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
+                          const SizedBox(height: 3),
+                          Text(
+                            'Rs. ${item.unitPrice.toStringAsFixed(0)} each',
+                            style: const TextStyle(
+                              fontSize: 11.5,
+                              color: _textMuted,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
                         ],
-                        const SizedBox(height: 2),
-                        Text(
-                          'PKR ${item.unitPrice.toStringAsFixed(0)} each',
-                          style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
-                        ),
-                      ],
+                      ),
                     ),
-                  ),
-                  // Counter
-                  Container(
-                    decoration: BoxDecoration(
-                      color: AppColors.backgroundLight,
-                      borderRadius: AppRadius.roundedFull,
-                      border: Border.all(color: AppColors.borderLight),
+                    // Soft Quantity Stepper
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: _bgCream,
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(color: _softBorder),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          InkWell(
+                            onTap: () => cart.updateQuantity(item.product.id, -1),
+                            child: const Padding(
+                              padding: EdgeInsets.all(3),
+                              child: Icon(Icons.remove_rounded, size: 15, color: _textDark),
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 6),
+                            child: Text(
+                              '${item.quantity}',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w900,
+                                fontSize: 12.5,
+                                color: _textDark,
+                              ),
+                            ),
+                          ),
+                          InkWell(
+                            onTap: () => cart.updateQuantity(item.product.id, 1),
+                            child: const Padding(
+                              padding: EdgeInsets.all(3),
+                              child: Icon(Icons.add_rounded, size: 15, color: _brandRed),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        InkWell(
-                          onTap: () => cart.updateQuantity(item.product.id, -1),
-                          child: const Padding(
-                            padding: EdgeInsets.all(4),
-                            child: Icon(Icons.remove, size: 16, color: AppColors.textPrimary),
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 8),
-                          child: Text(
-                            '${item.quantity}',
-                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
-                          ),
-                        ),
-                        InkWell(
-                          onTap: () => cart.updateQuantity(item.product.id, 1),
-                          child: const Padding(
-                            padding: EdgeInsets.all(4),
-                            child: Icon(Icons.add, size: 16, color: AppColors.textPrimary),
-                          ),
-                        ),
-                      ],
+                    const SizedBox(width: 10),
+                    Text(
+                      'Rs. ${item.totalPrice.toStringAsFixed(0)}',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w900,
+                        fontSize: 14,
+                        color: _brandRed,
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: AppSpacing.md),
-                  Text(
-                    'PKR ${item.totalPrice.toStringAsFixed(0)}',
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: AppColors.primaryDark),
-                  ),
-                ],
+                  ],
+                ),
               );
             },
           ),
         ),
-        const Divider(height: 20),
+        const SizedBox(height: 12),
 
-        // Bill Summary
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+        // Bill Summary Box
+        Container(
+          margin: const EdgeInsets.symmetric(horizontal: 16),
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: _softBorder),
+          ),
           child: Column(
             children: [
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('Items Subtotal', style: TextStyle(color: AppColors.textSecondary, fontSize: 13)),
-                  Text('PKR ${cart.subtotal.toStringAsFixed(0)}', style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
+                  const Text('Subtotal', style: TextStyle(color: _textMuted, fontSize: 12.5, fontWeight: FontWeight.w600)),
+                  Text('Rs. ${cart.subtotal.toStringAsFixed(0)}', style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13, color: _textDark)),
                 ],
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: 6),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('Delivery Fee (Batkhela)', style: TextStyle(color: AppColors.textSecondary, fontSize: 13)),
+                  const Text('Delivery Fee', style: TextStyle(color: _textMuted, fontSize: 12.5, fontWeight: FontWeight.w600)),
                   Text(
-                    cart.deliveryFee == 0 ? 'FREE' : 'PKR ${cart.deliveryFee.toStringAsFixed(0)}',
+                    cart.deliveryFee == 0 ? 'FREE' : 'Rs. ${cart.deliveryFee.toStringAsFixed(0)}',
                     style: TextStyle(
-                      fontWeight: FontWeight.w600,
+                      fontWeight: FontWeight.w800,
                       fontSize: 13,
-                      color: cart.deliveryFee == 0 ? AppColors.success : AppColors.textPrimary,
+                      color: cart.deliveryFee == 0 ? const Color(0xFF15803D) : _textDark,
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: 6),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('Service & Platform Fee', style: TextStyle(color: AppColors.textSecondary, fontSize: 13)),
-                  Text('PKR ${cart.platformFee.toStringAsFixed(0)}', style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
+                  const Text('Platform Fee', style: TextStyle(color: _textMuted, fontSize: 12.5, fontWeight: FontWeight.w600)),
+                  Text('Rs. ${cart.platformFee.toStringAsFixed(0)}', style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13, color: _textDark)),
                 ],
               ),
-              const Divider(height: 16),
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 10),
+                child: Divider(height: 1, color: _softBorder),
+              ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('Total Amount', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                  const Text(
+                    'Total Payable',
+                    style: TextStyle(fontWeight: FontWeight.w900, fontSize: 15.5, color: _textDark),
+                  ),
                   Text(
-                    'PKR ${cart.totalAmount.toStringAsFixed(0)}',
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20, color: AppColors.primary),
+                    'Rs. ${cart.totalAmount.toStringAsFixed(0)}',
+                    style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 19, color: _brandRed),
                   ),
                 ],
               ),
             ],
           ),
         ),
-        const SizedBox(height: AppSpacing.md),
+        const SizedBox(height: 14),
 
         // Checkout Button
         Padding(
-          padding: const EdgeInsets.fromLTRB(AppSpacing.lg, 0, AppSpacing.lg, AppSpacing.md),
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
           child: SizedBox(
             width: double.infinity,
-            height: 52,
-            child: ElevatedButton(
-              onPressed: () {
-                Navigator.pop(context);
-                Navigator.push<void>(
-                  context,
-                  MaterialPageRoute<void>(builder: (context) => const CheckoutScreen()),
-                );
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                foregroundColor: Colors.white,
-                shape: const RoundedRectangleBorder(borderRadius: AppRadius.roundedFull),
-                elevation: 3,
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text('Proceed to Checkout', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                  Text('PKR ${cart.totalAmount.toStringAsFixed(0)}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            height: 54,
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(colors: [_brandRed, _brandRedDark]),
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: _brandRed.withAlpha(80),
+                    blurRadius: 16,
+                    offset: const Offset(0, 6),
+                  ),
                 ],
+              ),
+              child: ElevatedButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  Navigator.push<void>(
+                    context,
+                    MaterialPageRoute<void>(builder: (context) => const CheckoutScreen()),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.transparent,
+                  foregroundColor: Colors.white,
+                  shadowColor: Colors.transparent,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Proceed to Checkout',
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900),
+                    ),
+                    Text(
+                      'Rs. ${cart.totalAmount.toStringAsFixed(0)} →',
+                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),

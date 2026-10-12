@@ -17,6 +17,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
   @override
   void initState() {
     super.initState();
+    AdminDemoController.instance.startLiveSync();
     MarketplaceDataService.instance.notificationController.initSession(
       userId: 'ADMIN-ROOT-001',
       role: 'admin',

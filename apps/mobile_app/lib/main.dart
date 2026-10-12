@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:marketplace_core/marketplace_core.dart';
 import 'src/screens/auth/auth_gate.dart';
+import 'src/services/live_sync_controller.dart';
 
 bool _isProductionSupabaseConfigured(String url, String key) {
   final cleanUrl = url.trim().toLowerCase();
@@ -56,6 +57,8 @@ void main() async {
     );
     MarketplaceDataService.instance.initialize(isDemoMode: true);
   }
+
+  LiveSyncController.instance.startLiveSync();
 
   runApp(const BatkhelaMarketplaceMobileApp());
 }

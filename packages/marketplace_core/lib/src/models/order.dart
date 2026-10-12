@@ -125,6 +125,12 @@ class MarketplaceOrder {
   final String deliveryAddress;
   final double? deliveryLat;
   final double? deliveryLng;
+  final double? riderLat;
+  final double? riderLng;
+  final double? riderHeading;
+  final String? assignedRiderId;
+  final String? assignedRiderName;
+  final String? deliveryAssignmentType; // 'vendor_self' or 'rider'
   final String? customerNotes;
   final List<OrderItem> items;
   final DateTime createdAt;
@@ -144,12 +150,64 @@ class MarketplaceOrder {
     required this.deliveryAddress,
     this.deliveryLat,
     this.deliveryLng,
+    this.riderLat,
+    this.riderLng,
+    this.riderHeading,
+    this.assignedRiderId,
+    this.assignedRiderName,
+    this.deliveryAssignmentType,
     this.customerNotes,
     this.items = const [],
     required this.createdAt,
   });
 
+  MarketplaceOrder copyWith({
+    OrderStatus? status,
+    String? deliveryAddress,
+    double? deliveryLat,
+    double? deliveryLng,
+    double? riderLat,
+    double? riderLng,
+    double? riderHeading,
+    String? assignedRiderId,
+    String? assignedRiderName,
+    String? deliveryAssignmentType,
+  }) {
+    return MarketplaceOrder(
+      id: id,
+      orderNumber: orderNumber,
+      customerId: customerId,
+      vendorId: vendorId,
+      subtotal: subtotal,
+      deliveryFee: deliveryFee,
+      platformFee: platformFee,
+      totalAmount: totalAmount,
+      status: status ?? this.status,
+      paymentMethod: paymentMethod,
+      paymentStatus: paymentStatus,
+      deliveryAddress: deliveryAddress ?? this.deliveryAddress,
+      deliveryLat: deliveryLat ?? this.deliveryLat,
+      deliveryLng: deliveryLng ?? this.deliveryLng,
+      riderLat: riderLat ?? this.riderLat,
+      riderLng: riderLng ?? this.riderLng,
+      riderHeading: riderHeading ?? this.riderHeading,
+      assignedRiderId: assignedRiderId ?? this.assignedRiderId,
+      assignedRiderName: assignedRiderName ?? this.assignedRiderName,
+      deliveryAssignmentType: deliveryAssignmentType ?? this.deliveryAssignmentType,
+      customerNotes: customerNotes,
+      items: items,
+      createdAt: createdAt,
+    );
+  }
+
   factory MarketplaceOrder.fromJson(Map<String, dynamic> json, {List<OrderItem> items = const []}) {
+    final parsedItems = items.isNotEmpty
+        ? items
+        : (json['items'] is List)
+            ? (json['items'] as List)
+                .map((e) => OrderItem.fromJson(Map<String, dynamic>.from(e as Map)))
+                .toList()
+            : const <OrderItem>[];
     return MarketplaceOrder(
       id: json['id'] as String,
       orderNumber: (json['order_number'] as num?)?.toInt(),
@@ -165,8 +223,14 @@ class MarketplaceOrder {
       deliveryAddress: json['delivery_address'] as String? ?? '',
       deliveryLat: (json['delivery_lat'] as num?)?.toDouble(),
       deliveryLng: (json['delivery_lng'] as num?)?.toDouble(),
+      riderLat: (json['rider_lat'] as num?)?.toDouble(),
+      riderLng: (json['rider_lng'] as num?)?.toDouble(),
+      riderHeading: (json['rider_heading'] as num?)?.toDouble(),
+      assignedRiderId: json['assigned_rider_id'] as String?,
+      assignedRiderName: json['assigned_rider_name'] as String?,
+      deliveryAssignmentType: json['delivery_assignment_type'] as String?,
       customerNotes: json['customer_notes'] as String?,
-      items: items,
+      items: parsedItems,
       createdAt: DateTime.tryParse(json['created_at'] as String? ?? '') ?? DateTime.now(),
     );
   }
@@ -187,7 +251,14 @@ class MarketplaceOrder {
       'delivery_address': deliveryAddress,
       'delivery_lat': deliveryLat,
       'delivery_lng': deliveryLng,
+      'rider_lat': riderLat,
+      'rider_lng': riderLng,
+      'rider_heading': riderHeading,
+      'assigned_rider_id': assignedRiderId,
+      'assigned_rider_name': assignedRiderName,
+      'delivery_assignment_type': deliveryAssignmentType,
       'customer_notes': customerNotes,
+      'items': items.map((i) => i.toJson()).toList(),
       'created_at': createdAt.toIso8601String(),
     };
   }

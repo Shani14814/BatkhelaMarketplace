@@ -9,6 +9,7 @@ import '../theme/app_typography.dart';
 class VendorStoreCard extends StatelessWidget {
   final String name;
   final String? category;
+  final String? address;
   final String? imageUrl;
   final double rating;
   final int? reviewCount;
@@ -22,6 +23,7 @@ class VendorStoreCard extends StatelessWidget {
     super.key,
     required this.name,
     this.category,
+    this.address,
     this.imageUrl,
     this.rating = 4.5,
     this.reviewCount,
@@ -227,6 +229,30 @@ class VendorStoreCard extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                       ),
                     ],
+                    if (address != null && address!.isNotEmpty) ...[
+                      const SizedBox(height: 3),
+                      Row(
+                        children: [
+                          const Icon(
+                            Icons.location_on_outlined,
+                            size: 13,
+                            color: AppColors.primary,
+                          ),
+                          const SizedBox(width: 3),
+                          Expanded(
+                            child: Text(
+                              address!,
+                              style: const TextStyle(
+                                fontSize: 11,
+                                color: AppColors.textTertiary,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                     const SizedBox(height: AppSpacing.sm),
                     // Delivery Info Row
                     Row(
@@ -286,29 +312,54 @@ class VendorStoreCard extends StatelessWidget {
   }
 
   Widget _buildPlaceholder() {
+    final cat = (category ?? '').toLowerCase();
+    final storeName = name.toLowerCase();
+
+    List<Color> gradientColors;
+    IconData icon;
+
+    if (cat.contains('restaurant') || cat.contains('bbq') || storeName.contains('tikka') || storeName.contains('kabab') || storeName.contains('pulao') || storeName.contains('food')) {
+      gradientColors = const [Color(0xFFEA580C), Color(0xFFC2410C), Color(0xFF7C2D12)];
+      icon = Icons.restaurant_rounded;
+    } else if (cat.contains('pharmacy') || cat.contains('health') || storeName.contains('pharmacy') || storeName.contains('medicos')) {
+      gradientColors = const [Color(0xFFE11D48), Color(0xFFBE123C), Color(0xFF881337)];
+      icon = Icons.local_pharmacy_rounded;
+    } else if (cat.contains('fruit') || cat.contains('vegetable') || cat.contains('produce') || storeName.contains('sabzi') || storeName.contains('honey')) {
+      gradientColors = const [Color(0xFF16A34A), Color(0xFF15803D), Color(0xFF14532D)];
+      icon = Icons.eco_rounded;
+    } else if (cat.contains('bakery') || cat.contains('sweet') || storeName.contains('sweet') || storeName.contains('baker')) {
+      gradientColors = const [Color(0xFFD97706), Color(0xFFB45309), Color(0xFF78350F)];
+      icon = Icons.cake_rounded;
+    } else if (cat.contains('grocery') || storeName.contains('mart') || storeName.contains('wholesale')) {
+      gradientColors = const [Color(0xFF4F46E5), Color(0xFF4338CA), Color(0xFF312E81)];
+      icon = Icons.shopping_basket_rounded;
+    } else if (cat.contains('electronic') || cat.contains('mobile') || storeName.contains('mobile')) {
+      gradientColors = const [Color(0xFF0284C7), Color(0xFF0369A1), Color(0xFF0C4A6E)];
+      icon = Icons.devices_other_rounded;
+    } else {
+      gradientColors = const [AppColors.primary, AppColors.primaryDark, Color(0xFF003035)];
+      icon = Icons.storefront_rounded;
+    }
+
     return Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [
-            AppColors.primaryLight,
-            AppColors.softCyan.withAlpha(90),
-            const Color(0xFFE0F2FE),
-          ],
+          colors: gradientColors,
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
       ),
       alignment: Alignment.center,
       child: Container(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: Colors.white.withAlpha(200),
+          color: Colors.white.withAlpha(45),
           shape: BoxShape.circle,
         ),
-        child: const Icon(
-          Icons.storefront_rounded,
-          size: 32,
-          color: AppColors.primary,
+        child: Icon(
+          icon,
+          size: 34,
+          color: Colors.white,
         ),
       ),
     );

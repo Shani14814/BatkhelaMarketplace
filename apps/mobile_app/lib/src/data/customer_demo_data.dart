@@ -11,6 +11,8 @@ class MarketplacePromoBanner {
   final Color primaryColor;
   final Color accentColor;
   final IconData icon;
+  final String imageUrl;
+  final String targetCategoryId;
 
   const MarketplacePromoBanner({
     required this.id,
@@ -21,6 +23,8 @@ class MarketplacePromoBanner {
     required this.primaryColor,
     required this.accentColor,
     required this.icon,
+    required this.imageUrl,
+    this.targetCategoryId = 'all',
   });
 }
 
@@ -31,6 +35,7 @@ class MarketplaceCategory {
   final String urduName;
   final IconData icon;
   final Color accentColor;
+  final String emoji;
 
   const MarketplaceCategory({
     required this.id,
@@ -38,10 +43,11 @@ class MarketplaceCategory {
     required this.urduName,
     required this.icon,
     required this.accentColor,
+    this.emoji = '⭐',
   });
 }
 
-/// Store Model with UI metadata for Customer Discovery
+/// Store Model with UI metadata for Customer Discovery & Vendor Switching
 class DemoStore {
   final String id;
   final String name;
@@ -56,6 +62,10 @@ class DemoStore {
   final List<String> badges;
   final bool isOpen;
   final String? imageUrl;
+  final String? logoUrl;
+  final String ownerName;
+  final String phone;
+  final String operatingHours;
   final List<Product> products;
 
   const DemoStore({
@@ -72,108 +82,211 @@ class DemoStore {
     this.badges = const [],
     this.isOpen = true,
     this.imageUrl,
+    this.logoUrl,
+    this.ownerName = 'Verified Batkhela Merchant',
+    this.phone = '+92 345 9876543',
+    this.operatingHours = '09:00 AM – 11:00 PM (Daily)',
     this.products = const [],
   });
+
+  Map<String, dynamic> toJson({int sortOrder = 99}) {
+    return {
+      'id': id,
+      'sort_order': sortOrder,
+      'name': name,
+      'category_id': categoryId,
+      'category_name': categoryName,
+      'description': description,
+      'address': address,
+      'rating': rating,
+      'review_count': reviewCount,
+      'delivery_time': deliveryTime,
+      'delivery_fee': deliveryFee,
+      'badges': badges,
+      'is_open': isOpen,
+      'image_url': imageUrl,
+      'logo_url': logoUrl,
+      'owner_name': ownerName,
+      'phone': phone,
+      'operating_hours': operatingHours,
+    };
+  }
+
+  factory DemoStore.fromJson(Map<String, dynamic> json, List<Product> storeProducts) {
+    return DemoStore(
+      id: json['id']?.toString() ?? 'store-1',
+      name: json['name']?.toString() ?? 'Batkhela Store',
+      categoryId: json['category_id']?.toString() ?? 'food',
+      categoryName: json['category_name']?.toString() ?? 'Restaurants & BBQ',
+      description: json['description']?.toString() ?? '',
+      address: json['address']?.toString() ?? 'Main Bazaar, Batkhela',
+      rating: (json['rating'] as num?)?.toDouble() ?? 4.8,
+      reviewCount: (json['review_count'] as num?)?.toInt() ?? 50,
+      deliveryTime: json['delivery_time']?.toString() ?? '25-35 min',
+      deliveryFee: json['delivery_fee']?.toString() ?? 'PKR 60',
+      badges: (json['badges'] is List)
+          ? (json['badges'] as List).map((e) => e.toString()).toList()
+          : const ['Verified'],
+      isOpen: json['is_open'] is bool ? json['is_open'] as bool : true,
+      imageUrl: json['image_url']?.toString(),
+      logoUrl: json['logo_url']?.toString(),
+      ownerName: json['owner_name']?.toString() ?? 'Verified Batkhela Merchant',
+      phone: json['phone']?.toString() ?? '+92 345 9876543',
+      operatingHours: json['operating_hours']?.toString() ?? '09:00 AM – 11:00 PM (Daily)',
+      products: storeProducts,
+    );
+  }
 }
 
 /// Centralized Local Demo Data for Batkhela Marketplace
 class CustomerDemoData {
-  static const String activeDeliveryAddress = 'Main Bazaar, Near Clock Tower, Batkhela';
+  static String activeDeliveryAddress = 'Main Bazaar, Near Clock Tower, Batkhela';
 
-  // Promotional Hero Banners
+  // Promotional Hero Banners (Arby's-style crafted visual banners with product photography)
   static const List<MarketplacePromoBanner> promoBanners = [
     MarketplacePromoBanner(
       id: 'banner-1',
-      title: 'Batkhela Local Express',
-      subtitle: 'Free delivery on your first 3 orders across Batkhela & Thana bazaar',
-      tag: 'SPECIAL PROMO',
-      ctaLabel: 'Explore Stores',
-      primaryColor: AppColors.primary,
-      accentColor: AppColors.softCyan,
-      icon: Icons.electric_moped,
+      title: 'FAST FOOD.\nBURGERS &\nKARAHI.',
+      subtitle: 'Big flavor. Bold Batkhela choices.',
+      tag: 'HOT & FRESH',
+      ctaLabel: 'Order Now',
+      primaryColor: Color(0xFFB91C1C),
+      accentColor: Color(0xFF7F1D1D),
+      icon: Icons.lunch_dining,
+      imageUrl: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=600&auto=format&fit=crop&q=80',
+      targetCategoryId: 'fastfood',
     ),
     MarketplacePromoBanner(
       id: 'banner-2',
-      title: 'Shinwari BBQ & Karahi Festival',
-      subtitle: 'Flat 20% OFF on all Mutton & Chicken Karahi and BBQ platters this weekend',
-      tag: 'WEEKEND SPECIAL',
-      ctaLabel: 'Order Feast',
-      primaryColor: AppColors.indigo,
-      accentColor: AppColors.coral,
-      icon: Icons.local_fire_department,
+      title: 'DAILY GROCERY.\nFARM FRESH.\nDELIVERED.',
+      subtitle: 'Atta, Rice, Milk & Sabzi in 25 mins.',
+      tag: 'SUPER MART',
+      ctaLabel: 'Shop Grocery',
+      primaryColor: Color(0xFF0F766E),
+      accentColor: Color(0xFF115E59),
+      icon: Icons.shopping_basket,
+      imageUrl: 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=600&auto=format&fit=crop&q=80',
+      targetCategoryId: 'grocery',
     ),
     MarketplacePromoBanner(
       id: 'banner-3',
-      title: 'Farm Fresh Sabzi Mandi Deals',
-      subtitle: 'Directly sourced from Malakand green farms with same-day express doorstep dispatch',
-      tag: 'ORGANIC FRESH',
-      ctaLabel: 'Shop Produce',
-      primaryColor: Color(0xFF15803D),
-      accentColor: Color(0xFF86EFAC),
-      icon: Icons.eco,
+      title: '24/7 MEDICINE.\nPHARMACY\nEXPRESS.',
+      subtitle: 'Genuine medicines & care at your door.',
+      tag: 'HEALTH CARE',
+      ctaLabel: 'Order Meds',
+      primaryColor: Color(0xFF9F1239),
+      accentColor: Color(0xFF881337),
+      icon: Icons.medical_services_outlined,
+      imageUrl: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=600&auto=format&fit=crop&q=80',
+      targetCategoryId: 'pharmacy',
     ),
     MarketplacePromoBanner(
       id: 'banner-4',
-      title: 'Batkhela Central Pharmacy Care',
-      subtitle: 'Genuine prescription medicines, vitamins & first-aid essentials delivered in 20 mins',
-      tag: 'HEALTH FIRST',
-      ctaLabel: 'Order Meds',
-      primaryColor: Color(0xFFBE123C),
-      accentColor: Color(0xFFFECDD3),
-      icon: Icons.medical_services_outlined,
+      title: 'CHILLED DRINKS.\nSHAKES &\nBAKERY.',
+      subtitle: 'Ice-cold beverages, shakes & sweets.',
+      tag: 'COOL & SWEET',
+      ctaLabel: 'Order Drinks',
+      primaryColor: Color(0xFF1E3A8A),
+      accentColor: Color(0xFF172554),
+      icon: Icons.local_drink,
+      imageUrl: 'https://images.unsplash.com/photo-1572490122747-3968b75cc699?w=600&auto=format&fit=crop&q=80',
+      targetCategoryId: 'colddrinks',
+    ),
+    MarketplacePromoBanner(
+      id: 'banner-5',
+      title: 'SHINWARI BBQ.\nTIKKA & MUTTON\nPERFECTED.',
+      subtitle: 'Charcoal grilled specialties across Batkhela.',
+      tag: 'BBQ FEAST',
+      ctaLabel: 'Order BBQ',
+      primaryColor: Color(0xFF9A3412),
+      accentColor: Color(0xFF7C2D12),
+      icon: Icons.local_fire_department,
+      imageUrl: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=600&auto=format&fit=crop&q=80',
+      targetCategoryId: 'restaurants',
     ),
   ];
 
-  // 6 Primary Categories
+  // Primary Categories (Icon Tiles with Emojis for Arby's-style Horizontal Carousel)
   static const List<MarketplaceCategory> categories = [
     MarketplaceCategory(
       id: 'all',
-      name: 'All Categories',
+      name: 'Featured',
       urduName: 'تمام',
-      icon: Icons.grid_view_rounded,
-      accentColor: AppColors.primary,
-    ),
-    MarketplaceCategory(
-      id: 'restaurants',
-      name: 'Restaurants & BBQ',
-      urduName: 'ریستوران و تکہ',
-      icon: Icons.restaurant_outlined,
-      accentColor: AppColors.primary,
+      icon: Icons.star_rounded,
+      accentColor: Color(0xFFC8102E),
+      emoji: '⭐',
     ),
     MarketplaceCategory(
       id: 'grocery',
-      name: 'Fresh Grocery',
+      name: 'Grocery',
       urduName: 'کریانہ و راشن',
-      icon: Icons.shopping_basket_outlined,
-      accentColor: AppColors.indigo,
+      icon: Icons.shopping_basket_rounded,
+      accentColor: Color(0xFF15803D),
+      emoji: '🛒',
     ),
     MarketplaceCategory(
       id: 'pharmacy',
-      name: 'Pharmacy & Health',
+      name: 'Medicine',
       urduName: 'فارمیسی و ادویات',
-      icon: Icons.local_pharmacy_outlined,
-      accentColor: AppColors.coral,
+      icon: Icons.medication_rounded,
+      accentColor: Color(0xFFDC2626),
+      emoji: '💊',
     ),
     MarketplaceCategory(
-      id: 'produce',
-      name: 'Fruits & Vegetables',
-      urduName: 'تازہ پھل اور سبزیاں',
-      icon: Icons.eco_outlined,
-      accentColor: Color(0xFF16A34A),
+      id: 'fastfood',
+      name: 'Fast Food',
+      urduName: 'برگر اور فاسٹ فوڈ',
+      icon: Icons.lunch_dining_rounded,
+      accentColor: Color(0xFFD97706),
+      emoji: '🍔',
+    ),
+    MarketplaceCategory(
+      id: 'colddrinks',
+      name: 'Cold Drinks',
+      urduName: 'کولڈ ڈرنکس اور شیکس',
+      icon: Icons.local_drink_rounded,
+      accentColor: Color(0xFF0284C7),
+      emoji: '🥤',
+    ),
+    MarketplaceCategory(
+      id: 'restaurants',
+      name: 'BBQ & Karahi',
+      urduName: 'ریستوران و تکہ',
+      icon: Icons.restaurant_rounded,
+      accentColor: Color(0xFFB91C1C),
+      emoji: '🍖',
     ),
     MarketplaceCategory(
       id: 'bakery',
-      name: 'Bakery & Sweets',
+      name: 'Bakery',
       urduName: 'مٹھائی اور بیکری',
-      icon: Icons.cake_outlined,
-      accentColor: Color(0xFFD97706),
+      icon: Icons.cake_rounded,
+      accentColor: Color(0xFFEA580C),
+      emoji: '🍰',
     ),
     MarketplaceCategory(
-      id: 'general',
-      name: 'General Stores',
-      urduName: 'جنرل اسٹور',
-      icon: Icons.storefront_outlined,
-      accentColor: AppColors.indigo,
+      id: 'produce',
+      name: 'Fruits & Honey',
+      urduName: 'تازہ پھل اور شہد',
+      icon: Icons.eco_rounded,
+      accentColor: Color(0xFF16A34A),
+      emoji: '🍎',
+    ),
+    MarketplaceCategory(
+      id: 'electronics',
+      name: 'Electronics',
+      urduName: 'موبائل و الیکٹرانکس',
+      icon: Icons.devices_other_rounded,
+      accentColor: Color(0xFF2563EB),
+      emoji: '📱',
+    ),
+    MarketplaceCategory(
+      id: 'fashion',
+      name: 'Fashion',
+      urduName: 'کپڑے اور چپل',
+      icon: Icons.checkroom_rounded,
+      accentColor: Color(0xFF7C3AED),
+      emoji: '👞',
     ),
   ];
 
@@ -363,11 +476,35 @@ class CustomerDemoData {
         Product(
           id: 'p-303',
           vendorId: 'store-3',
-          name: 'Loaded Cheesy Masala Fries',
-          description: 'Golden potato fries seasoned with chaat masala, jalapeños, and warm cheddar sauce',
+          name: 'Loaded Cheesy Curly Fries',
+          description: 'Golden curly potato fries seasoned with chaat masala, jalapeños, and warm cheddar sauce',
           price: 280.0,
           category: 'Sides & Fries',
           imageUrl: 'https://images.unsplash.com/photo-1576107232684-1279f3908594?w=400&auto=format&fit=crop&q=80',
+          isAvailable: true,
+          createdAt: DateTime(2026, 1, 1),
+        ),
+        Product(
+          id: 'p-304',
+          vendorId: 'store-3',
+          name: 'Chilled Chocolate Jamocha Shake',
+          description: 'Thick creamy chocolate-coffee milkshake topped with whipped cream and cocoa drizzle',
+          price: 350.0,
+          discountPrice: 299.0,
+          category: 'Cold Drinks & Shakes',
+          imageUrl: 'https://images.unsplash.com/photo-1572490122747-3968b75cc699?w=400&auto=format&fit=crop&q=80',
+          isAvailable: true,
+          createdAt: DateTime(2026, 1, 1),
+        ),
+        Product(
+          id: 'p-305',
+          vendorId: 'store-3',
+          name: 'Ice-Cold Pepsi & Sting Party Pack (4 Bottles)',
+          description: '2x Chilled Pepsi 1.5L Jumbo + 2x Sting Berry Blast 500ml delivered ice-cold',
+          price: 540.0,
+          discountPrice: 480.0,
+          category: 'Cold Drinks & Shakes',
+          imageUrl: 'https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=400&auto=format&fit=crop&q=80',
           isAvailable: true,
           createdAt: DateTime(2026, 1, 1),
         ),
@@ -850,6 +987,285 @@ class CustomerDemoData {
           isAvailable: true,
           createdAt: DateTime(2026, 1, 1),
         ),
+        Product(
+          id: 'p-1203',
+          vendorId: 'store-12',
+          name: 'Dove Daily Moisture Care Shampoo (360ml)',
+          description: 'Nourishing silk protein shampoo for smooth and healthy hair',
+          price: 680.0,
+          discountPrice: 599.0,
+          category: 'Personal Care',
+          imageUrl: 'https://images.unsplash.com/photo-1535585209827-a15fcdbc4c2d?w=400&auto=format&fit=crop&q=80',
+          isAvailable: true,
+          createdAt: DateTime(2026, 1, 1),
+        ),
+        Product(
+          id: 'p-1204',
+          vendorId: 'store-12',
+          name: 'Lemon Max Dishwash Liquid (750ml Bottle)',
+          description: 'Concentrated lemon grease cutter for sparkling clean kitchenware',
+          price: 350.0,
+          category: 'Laundry & Cleaning',
+          imageUrl: 'https://images.unsplash.com/photo-1585421514284-efb74c2b69ba?w=400&auto=format&fit=crop&q=80',
+          isAvailable: true,
+          createdAt: DateTime(2026, 1, 1),
+        ),
+      ],
+    ),
+
+    // 13. Mobile & Tech
+    DemoStore(
+      id: 'store-13',
+      name: 'Malakand Mobile & Electronics Hub',
+      categoryId: 'electronics',
+      categoryName: 'Mobile & Tech',
+      description: 'Fast chargers, wireless earbuds, power banks, smartwatches & LED solar lights',
+      address: 'Main Bazaar Road, Opp. Allied Bank, Batkhela',
+      rating: 4.9,
+      reviewCount: 195,
+      deliveryTime: '20-30 min',
+      deliveryFee: 'Free Delivery',
+      badges: ['Genuine Warranty', 'Top Tech'],
+      isOpen: true,
+      ownerName: 'Tariq Mahmood Khan',
+      phone: '+92 346 9988776',
+      imageUrl: 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=600&auto=format&fit=crop&q=80',
+      logoUrl: 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=400&auto=format&fit=crop&q=80',
+      products: [
+        Product(
+          id: 'p-1301',
+          vendorId: 'store-13',
+          name: '20,000mAh Fast Charge Power Bank (22.5W PD)',
+          description: 'Dual USB + Type-C super-fast charging power bank with digital LED battery display',
+          price: 4200.0,
+          discountPrice: 3650.0,
+          category: 'Power Banks & Chargers',
+          imageUrl: 'https://images.unsplash.com/photo-1609091839311-d5365f9ff1c5?w=400&auto=format&fit=crop&q=80',
+          isAvailable: true,
+          createdAt: DateTime(2026, 1, 1),
+        ),
+        Product(
+          id: 'p-1302',
+          vendorId: 'store-13',
+          name: 'ANC Pro Wireless Bluetooth Earbuds',
+          description: 'Active noise cancellation, crystal clear mic & 30-hour charging case battery life',
+          price: 3500.0,
+          discountPrice: 2890.0,
+          category: 'Audio & Earbuds',
+          imageUrl: 'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=400&auto=format&fit=crop&q=80',
+          isAvailable: true,
+          createdAt: DateTime(2026, 1, 1),
+        ),
+        Product(
+          id: 'p-1303',
+          vendorId: 'store-13',
+          name: 'Super Fast 45W Type-C Wall Adapter + Cable',
+          description: 'Original high-speed PD adapter compatible with Samsung, iPhone & Xiaomi',
+          price: 1850.0,
+          discountPrice: 1550.0,
+          category: 'Power Banks & Chargers',
+          imageUrl: 'https://images.unsplash.com/photo-1583863788434-e58a36330cf0?w=400&auto=format&fit=crop&q=80',
+          isAvailable: true,
+          createdAt: DateTime(2026, 1, 1),
+        ),
+        Product(
+          id: 'p-1304',
+          vendorId: 'store-13',
+          name: 'Ultra Series 9 AMOLED Smart Watch',
+          description: 'Bluetooth calling, heart rate monitor, prayer time reminders & waterproof strap',
+          price: 4800.0,
+          discountPrice: 3990.0,
+          category: 'Smart Watches',
+          imageUrl: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&auto=format&fit=crop&q=80',
+          isAvailable: true,
+          createdAt: DateTime(2026, 1, 1),
+        ),
+      ],
+    ),
+
+    // 14. Chappal & Traditional Fabrics
+    DemoStore(
+      id: 'store-14',
+      name: 'Khyber Chappal & Traditional Fabrics',
+      categoryId: 'fashion',
+      categoryName: 'Chappal & Fabrics',
+      description: 'Handmade Peshawari & Charsadda leather chappals, Swati woolen shawls & unstitched suits',
+      address: 'Chappal Market, Main Bazaar, Batkhela',
+      rating: 4.8,
+      reviewCount: 160,
+      deliveryTime: '25-40 min',
+      deliveryFee: 'PKR 50',
+      badges: ['Handmade Leather', 'Pashtun Heritage'],
+      isOpen: true,
+      ownerName: 'Haji Gulzar Ahmad',
+      phone: '+92 332 5544332',
+      imageUrl: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=600&auto=format&fit=crop&q=80',
+      logoUrl: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&auto=format&fit=crop&q=80',
+      products: [
+        Product(
+          id: 'p-1401',
+          vendorId: 'store-14',
+          name: 'Handmade Zalmi Peshawari Leather Chappal',
+          description: '100% pure cow leather hand-stitched double-sole traditional footwear with tire grip',
+          price: 3800.0,
+          discountPrice: 3290.0,
+          category: 'Peshawari Chappals',
+          imageUrl: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&auto=format&fit=crop&q=80',
+          isAvailable: true,
+          createdAt: DateTime(2026, 1, 1),
+        ),
+        Product(
+          id: 'p-1402',
+          vendorId: 'store-14',
+          name: 'Premium Men Unstitched Wash & Wear Suit (4.5m)',
+          description: 'Wrinkle-free breathable fabric ideal for all seasons in classic off-white & navy',
+          price: 2950.0,
+          discountPrice: 2550.0,
+          category: 'Unstitched Fabrics',
+          imageUrl: 'https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?w=400&auto=format&fit=crop&q=80',
+          isAvailable: true,
+          createdAt: DateTime(2026, 1, 1),
+        ),
+        Product(
+          id: 'p-1403',
+          vendorId: 'store-14',
+          name: 'Authentic Islampur Swati Handwoven Woolen Shawl',
+          description: 'Warm, soft pure wool men chaddar woven by master artisans of Swat valley',
+          price: 4500.0,
+          discountPrice: 3900.0,
+          category: 'Swati Shawls & Pakol',
+          imageUrl: 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=400&auto=format&fit=crop&q=80',
+          isAvailable: true,
+          createdAt: DateTime(2026, 1, 1),
+        ),
+      ],
+    ),
+
+    // 15. Restaurant - Pulao & Sajji
+    DemoStore(
+      id: 'store-15',
+      name: 'Al-Madina Bannu Beef Pulao & Sajji',
+      categoryId: 'restaurants',
+      categoryName: 'Restaurants & BBQ',
+      description: 'Famous spiced Bannu Beef Pulao, Kabuli Afghani Pulao, Whole Roasted Chicken Sajji & Kahwa',
+      address: 'Bypass Road, Near NADRA Office, Batkhela',
+      rating: 4.9,
+      reviewCount: 315,
+      deliveryTime: '20-30 min',
+      deliveryFee: 'Free Delivery',
+      badges: ['Bestseller Pulao', 'Hot & Fresh'],
+      isOpen: true,
+      ownerName: 'Ustad Rehman Ullah',
+      phone: '+92 313 9001199',
+      imageUrl: 'https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=600&auto=format&fit=crop&q=80',
+      logoUrl: 'https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=400&auto=format&fit=crop&q=80',
+      products: [
+        Product(
+          id: 'p-1501',
+          vendorId: 'store-15',
+          name: 'Special Bannu Beef Yakhni Pulao (Full Plate)',
+          description: 'Slow-cooked tender beef shank chunks over aromatic bone-broth sella rice',
+          price: 550.0,
+          discountPrice: 490.0,
+          category: 'Traditional Pulao',
+          imageUrl: 'https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=400&auto=format&fit=crop&q=80',
+          isAvailable: true,
+          createdAt: DateTime(2026, 1, 1),
+        ),
+        Product(
+          id: 'p-1502',
+          vendorId: 'store-15',
+          name: 'Whole Charcoal Roasted Chicken Sajji with Rice',
+          description: 'Marinated whole organic chicken slow-roasted over wood fire served on masala rice',
+          price: 1650.0,
+          discountPrice: 1480.0,
+          category: 'Sajji & Roast',
+          imageUrl: 'https://images.unsplash.com/photo-1598103442097-8b74394b95c6?w=400&auto=format&fit=crop&q=80',
+          isAvailable: true,
+          createdAt: DateTime(2026, 1, 1),
+        ),
+        Product(
+          id: 'p-1503',
+          vendorId: 'store-15',
+          name: 'Kabuli Afghani Mutton Pulao (With Raisins & Carrots)',
+          description: 'Authentic Kabuli rice topped with caramelized sweet carrots, almonds and mutton shank',
+          price: 950.0,
+          discountPrice: 880.0,
+          category: 'Traditional Pulao',
+          imageUrl: 'https://images.unsplash.com/photo-1512058564366-18510be2db19?w=400&auto=format&fit=crop&q=80',
+          isAvailable: true,
+          createdAt: DateTime(2026, 1, 1),
+        ),
+      ],
+    ),
+
+    // 16. Dry Fruits & Organic Honey
+    DemoStore(
+      id: 'store-16',
+      name: 'Swat Dry Fruits & Sidr Honey House',
+      categoryId: 'produce',
+      categoryName: 'Fruits & Dry Fruits',
+      description: '100% pure Malakand Beri (Sidr) mountain honey, roasted almonds, walnuts, pistachios & dates',
+      address: 'Main GT Road, Near Clock Tower, Batkhela',
+      rating: 4.9,
+      reviewCount: 205,
+      deliveryTime: '20-30 min',
+      deliveryFee: 'PKR 40',
+      badges: ['100% Pure Organic', 'Gift Packs'],
+      isOpen: true,
+      ownerName: 'Haji Fazal Subhan',
+      phone: '+92 300 5987612',
+      imageUrl: 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=600&auto=format&fit=crop&q=80',
+      logoUrl: 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=400&auto=format&fit=crop&q=80',
+      products: [
+        Product(
+          id: 'p-1601',
+          vendorId: 'store-16',
+          name: 'Pure Malakand Wild Beri (Sidr) Honey (1 KG Jar)',
+          description: 'Unprocessed, raw organic Sidr mountain honey harvested from local Malakand apiaries',
+          price: 2600.0,
+          discountPrice: 2290.0,
+          category: 'Organic Honey',
+          imageUrl: 'https://images.unsplash.com/photo-1587049352847-4a222e784d38?w=400&auto=format&fit=crop&q=80',
+          isAvailable: true,
+          createdAt: DateTime(2026, 1, 1),
+        ),
+        Product(
+          id: 'p-1602',
+          vendorId: 'store-16',
+          name: 'Premium California & Swati Almonds Giri (500g)',
+          description: 'Crunchy, sweet-kernel supreme quality peeled almonds rich in vitamin E',
+          price: 1650.0,
+          discountPrice: 1490.0,
+          category: 'Dry Fruits & Nuts',
+          imageUrl: 'https://images.unsplash.com/photo-1508061253366-f7da158b6d46?w=400&auto=format&fit=crop&q=80',
+          isAvailable: true,
+          createdAt: DateTime(2026, 1, 1),
+        ),
+        Product(
+          id: 'p-1603',
+          vendorId: 'store-16',
+          name: 'Kaghazi Swat Walnuts / Akhrot (1 KG Pack)',
+          description: 'Thin-shelled easy-crack mountain walnuts loaded with omega-3 nutrition',
+          price: 1200.0,
+          discountPrice: 1050.0,
+          category: 'Dry Fruits & Nuts',
+          imageUrl: 'https://images.unsplash.com/photo-1563636619-e9143da7973b?w=400&auto=format&fit=crop&q=80',
+          isAvailable: true,
+          createdAt: DateTime(2026, 1, 1),
+        ),
+        Product(
+          id: 'p-1604',
+          vendorId: 'store-16',
+          name: 'Royal Winter Dry Fruit Gift Box (1.5 KG Assorted)',
+          description: 'Luxury gift box with pistachios, cashews, almonds, walnuts, figs and dried apricots',
+          price: 4200.0,
+          discountPrice: 3750.0,
+          category: 'Gift Boxes',
+          imageUrl: 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=400&auto=format&fit=crop&q=80',
+          isAvailable: true,
+          createdAt: DateTime(2026, 1, 1),
+        ),
       ],
     ),
   ];
@@ -861,6 +1277,94 @@ class CustomerDemoData {
       list.addAll(s.products);
     }
     return list;
+  }
+
+  /// Smart store filter supporting Featured, Grocery, Medicine, Fast Food, Cold Drinks, BBQ, etc.
+  static List<DemoStore> storesForCategory(String categoryId) {
+    if (categoryId == 'all') return stores;
+    if (categoryId == 'fastfood') {
+      return stores.where((s) =>
+          s.id == 'store-3' ||
+          s.badges.any((b) => b.toLowerCase().contains('fast')) ||
+          s.description.toLowerCase().contains('burger') ||
+          s.categoryId == 'restaurants').toList();
+    }
+    if (categoryId == 'colddrinks') {
+      return stores.where((s) =>
+          s.id == 'store-3' ||
+          s.categoryId == 'bakery' ||
+          s.categoryId == 'grocery' ||
+          s.products.any((p) =>
+              (p.category ?? '').toLowerCase().contains('drink') ||
+              p.name.toLowerCase().contains('shake') ||
+              p.name.toLowerCase().contains('pepsi') ||
+              p.name.toLowerCase().contains('milk'))).toList();
+    }
+    return stores.where((s) => s.categoryId == categoryId).toList();
+  }
+
+  /// Smart product filter for Popular Picks & Category Carousels
+  static List<Product> productsForCategory(String categoryId) {
+    final all = allFeaturedProducts;
+    if (categoryId == 'all') {
+      // Curate top popular picks across Fast Food, Cold Drinks, BBQ, Grocery, Medicine
+      final priorityIds = [
+        'p-301', // Mighty Crispy Zinger Burger
+        'p-303', // Loaded Cheesy Curly Fries
+        'p-304', // Chilled Chocolate Jamocha Shake
+        'p-101', // Shinwari Mutton Karahi
+        'p-501', // Basmati Rice / Grocery
+        'p-701', // Panadol / Medicine
+        'p-305', // Ice-Cold Pepsi & Sting Pack
+        'p-201', // Chicken Malai Boti
+        'p-901', // Gulab Jamun
+        'p-1601', // Pure Sidr Honey
+      ];
+      final curated = <Product>[];
+      for (final pid in priorityIds) {
+        final match = all.where((p) => p.id == pid);
+        if (match.isNotEmpty) curated.add(match.first);
+      }
+      for (final p in all) {
+        if (!curated.any((c) => c.id == p.id)) {
+          curated.add(p);
+        }
+      }
+      return curated;
+    }
+    if (categoryId == 'fastfood') {
+      final matches = all.where((p) {
+        final text = '${p.name} ${p.category} ${p.description ?? ''}'.toLowerCase();
+        return text.contains('burger') ||
+            text.contains('fries') ||
+            text.contains('shawarma') ||
+            text.contains('kabab') ||
+            text.contains('tikka') ||
+            p.vendorId == 'store-3';
+      }).toList();
+      return matches.isNotEmpty ? matches : all;
+    }
+    if (categoryId == 'colddrinks') {
+      final matches = all.where((p) {
+        final text = '${p.name} ${p.category} ${p.description ?? ''}'.toLowerCase();
+        return text.contains('drink') ||
+            text.contains('shake') ||
+            text.contains('pepsi') ||
+            text.contains('sting') ||
+            text.contains('milk') ||
+            text.contains('tea') ||
+            text.contains('honey') ||
+            text.contains('raita');
+      }).toList();
+      return matches.isNotEmpty ? matches : all;
+    }
+    final catStores = storesForCategory(categoryId).map((s) => s.id).toSet();
+    final filtered = all.where((p) => catStores.contains(p.vendorId)).toList();
+    return filtered.isNotEmpty ? filtered : all;
+  }
+
+  static void addPlacedOrder(MarketplaceOrder order) {
+    initialOrders.insert(0, order);
   }
 
   // Realistic Multi-State Customer Orders

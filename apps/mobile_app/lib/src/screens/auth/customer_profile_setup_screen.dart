@@ -72,6 +72,18 @@ class _CustomerProfileSetupScreenState extends State<CustomerProfileSetupScreen>
     AuthService.instance.updateCurrentProfile(updatedProfile);
 
     try {
+      await HostingerApiClient.instance.saveUser({
+        'id': widget.profile.id,
+        'phone': widget.profile.phone,
+        'full_name': fullName.isNotEmpty ? fullName : 'Batkhela Customer',
+        'role': 'customer',
+        'status': 'active',
+        'address': fullAddress,
+        'area': _selectedArea,
+      });
+    } catch (_) {}
+
+    try {
       await MarketplaceDataService.instance.customerRepo.addCustomerAddress(
         CustomerAddress(
           id: 'addr-${DateTime.now().millisecondsSinceEpoch}',

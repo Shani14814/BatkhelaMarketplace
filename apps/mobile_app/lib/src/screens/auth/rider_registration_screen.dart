@@ -106,6 +106,35 @@ class _RiderRegistrationScreenState extends State<RiderRegistrationScreen> {
       preferredZone: _selectedZone,
     );
 
+    try {
+      await HostingerApiClient.instance.saveUser({
+        'phone': _phoneCtrl.text.trim(),
+        'full_name': _fullNameCtrl.text.trim(),
+        'role': 'rider',
+        'status': 'pending',
+        'vehicle_type': _selectedVehicleType,
+        'vehicle_model': _vehicleModelCtrl.text.trim(),
+        'plate_number': _plateNumberCtrl.text.trim(),
+        'license_number': _licenseNumberCtrl.text.trim().isNotEmpty
+            ? _licenseNumberCtrl.text.trim()
+            : 'BK-M-2025-APP',
+        'cnic': _cnicCtrl.text.trim(),
+        'preferred_zone': _selectedZone,
+      });
+    } catch (_) {}
+
+    AuthService.instance.updateCurrentProfile(
+      UserProfile(
+        id: 'rider-${_phoneCtrl.text.replaceAll(RegExp(r'\D'), '')}',
+        phone: _phoneCtrl.text.trim(),
+        fullName: _fullNameCtrl.text.trim(),
+        role: UserRole.rider,
+        isActive: false,
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      ),
+    );
+
     if (!mounted) return;
     setState(() => _isLoading = false);
 

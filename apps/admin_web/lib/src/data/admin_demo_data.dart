@@ -434,6 +434,7 @@ class AdminDemoController extends ChangeNotifier {
     if (index != -1) {
       vendors[index].status = ApprovalStatus.approved;
       notifyListeners();
+      unawaited(HostingerApiClient.instance.updateUserStatus(id, 'approved'));
     }
   }
 
@@ -442,6 +443,7 @@ class AdminDemoController extends ChangeNotifier {
     if (index != -1) {
       vendors[index].status = ApprovalStatus.rejected;
       notifyListeners();
+      unawaited(HostingerApiClient.instance.updateUserStatus(id, 'rejected'));
     }
   }
 
@@ -450,6 +452,7 @@ class AdminDemoController extends ChangeNotifier {
     if (index != -1) {
       riders[index].status = ApprovalStatus.approved;
       notifyListeners();
+      unawaited(HostingerApiClient.instance.updateUserStatus(id, 'approved'));
     }
   }
 
@@ -458,6 +461,34 @@ class AdminDemoController extends ChangeNotifier {
     if (index != -1) {
       riders[index].status = ApprovalStatus.rejected;
       notifyListeners();
+      unawaited(HostingerApiClient.instance.updateUserStatus(id, 'rejected'));
+    }
+  }
+
+  void updateOrderStatus(
+    String orderId,
+    OrderStatus newStatus, {
+    String? riderId,
+    String? riderName,
+    String? assignmentType,
+  }) {
+    final index = orders.indexWhere((o) => o.id == orderId);
+    if (index != -1) {
+      final old = orders[index];
+      orders[index] = old.copyWith(
+        status: newStatus,
+        assignedRiderId: riderId,
+        assignedRiderName: riderName,
+        deliveryAssignmentType: assignmentType,
+      );
+      notifyListeners();
+      unawaited(HostingerApiClient.instance.updateOrderStatus(
+        orderId,
+        newStatus,
+        assignedRiderId: riderId,
+        assignedRiderName: riderName,
+        deliveryAssignmentType: assignmentType,
+      ));
     }
   }
 
@@ -519,6 +550,15 @@ class AdminDemoController extends ChangeNotifier {
     if (platformCommissionPercent != null) settings.platformCommissionPercent = platformCommissionPercent;
     if (supportPhone != null) settings.supportPhone = supportPhone;
     notifyListeners();
+    unawaited(HostingerApiClient.instance.savePlatformSettings({
+      'marketplaceName': settings.marketplaceName,
+      'defaultCity': settings.defaultCity,
+      'currency': settings.currency,
+      'baseDeliveryFee': settings.baseDeliveryFee,
+      'platformCommissionPercent': settings.platformCommissionPercent,
+      'supportPhone': settings.supportPhone,
+      'urduEnabled': settings.urduEnabled,
+    }));
   }
 
   Timer? _syncTimer;
@@ -528,7 +568,7 @@ class AdminDemoController extends ChangeNotifier {
     if (_syncStarted || HostingerApiClient.instance.isTestEnvironment) return;
     _syncStarted = true;
     unawaited(syncFromMySql());
-    _syncTimer = Timer.periodic(const Duration(seconds: 6), (_) {
+    _syncTimer = Timer.periodic(const Duration(seconds: 5), (_) {
       unawaited(syncFromMySql());
     });
   }
@@ -569,8 +609,15 @@ class AdminDemoController extends ChangeNotifier {
         final storeId = map['id']?.toString() ?? '';
         final storeName = map['name']?.toString() ?? '';
         if (storeId.isEmpty || storeName.isEmpty) continue;
-        final exists = vendors.any((v) => v.id == storeId || v.businessName == storeName);
-        if (!exists) {
+        final statusStr = (map['status'] ?? 'approved').toString();
+        final appStatus = statusStr == 'approved' || statusStr == 'active'
+            ? ApprovalStatus.approved
+            : (statusStr == 'rejected' ? ApprovalStatus.rejected : ApprovalStatus.pending);
+
+        final index = vendors.indexWhere((v) => v.id == storeId || v.businessName == storeName);
+        if (index != -1) {
+          vendors[index].status = appStatus;
+        } else {
           vendors.add(
             AdminVendorApplication(
               id: storeId,
@@ -580,12 +627,96 @@ class AdminDemoController extends ChangeNotifier {
               category: map['category_name']?.toString() ?? 'Retail Store',
               address: map['address']?.toString() ?? 'Main Bazaar, Batkhela',
               commissionRate: 10.0,
-              status: ApprovalStatus.approved,
+              status: appStatus,
               appliedAt: DateTime.now().subtract(const Duration(days: 15)),
             ),
           );
         }
       }
+    }
+
+    final rawUsers = state['users'];
+    if (rawUsers is List && rawUsers.isNotEmpty) {
+      for (final item in rawUsers) {
+        final map = item is Map<String, dynamic>
+            ? item
+            : Map<String, dynamic>.from(item as Map);
+        final role = (map['role'] ?? '').toString();
+        final id = (map['id'] ?? '').toString();
+        final statusStr = (map['status'] ?? 'pending').toString();
+        final approvalStatus = statusStr == 'approved' || statusStr == 'active'
+            ? ApprovalStatus.approved
+            : (statusStr == 'rejected' ? ApprovalStatus.rejected : ApprovalStatus.pending);
+
+        if (role == 'vendor') {
+          final idx = vendors.indexWhere((v) => v.id == id || v.phone == map['phone']);
+          if (idx != -1) {
+            vendors[idx].status = approvalStatus;
+          } else {
+            vendors.insert(
+              0,
+              AdminVendorApplication(
+                id: id,
+                businessName: map['store_name']?.toString() ?? map['full_name']?.toString() ?? 'New Vendor',
+                ownerName: map['full_name']?.toString() ?? 'Store Owner',
+                phone: map['phone']?.toString() ?? '',
+                category: map['category']?.toString() ?? 'Restaurants & BBQ',
+                address: map['address']?.toString() ?? 'Main Bazaar, Batkhela',
+                commissionRate: 10.0,
+                status: approvalStatus,
+                appliedAt: DateTime.tryParse(map['created_at']?.toString() ?? '') ?? DateTime.now(),
+              ),
+            );
+          }
+        } else if (role == 'rider') {
+          final idx = riders.indexWhere((r) => r.id == id || r.phone == map['phone']);
+          if (idx != -1) {
+            riders[idx].status = approvalStatus;
+          } else {
+            riders.insert(
+              0,
+              AdminRiderApplication(
+                id: id,
+                riderName: map['full_name']?.toString() ?? 'New Rider',
+                phone: map['phone']?.toString() ?? '',
+                cnic: map['cnic']?.toString() ?? '15402-XXXXXXX-X',
+                vehicleType: map['vehicle_type']?.toString() ?? 'Motorcycle (125cc)',
+                plateNumber: map['plate_number']?.toString() ?? 'BK-1234',
+                rating: 5.0,
+                completedTrips: 0,
+                status: approvalStatus,
+                appliedAt: DateTime.tryParse(map['created_at']?.toString() ?? '') ?? DateTime.now(),
+              ),
+            );
+          }
+        } else if (role == 'customer') {
+          final idx = customers.indexWhere((c) => c.id == id || c.phone == map['phone']);
+          if (idx == -1) {
+            customers.insert(
+              0,
+              AdminCustomer(
+                id: id,
+                name: map['full_name']?.toString() ?? 'Batkhela Customer',
+                phone: map['phone']?.toString() ?? '',
+                area: map['area']?.toString() ?? map['address']?.toString() ?? 'Main Bazaar, Batkhela',
+                totalOrders: 1,
+                totalSpend: 1500.0,
+                joinedAt: DateTime.tryParse(map['created_at']?.toString() ?? '') ?? DateTime.now(),
+                isActive: true,
+              ),
+            );
+          }
+        }
+      }
+    }
+
+    final rawSettings = state['settings'];
+    if (rawSettings is Map) {
+      if (rawSettings['marketplaceName'] != null) settings.marketplaceName = rawSettings['marketplaceName'].toString();
+      if (rawSettings['defaultCity'] != null) settings.defaultCity = rawSettings['defaultCity'].toString();
+      if (rawSettings['baseDeliveryFee'] != null) settings.baseDeliveryFee = (rawSettings['baseDeliveryFee'] as num).toDouble();
+      if (rawSettings['platformCommissionPercent'] != null) settings.platformCommissionPercent = (rawSettings['platformCommissionPercent'] as num).toDouble();
+      if (rawSettings['supportPhone'] != null) settings.supportPhone = rawSettings['supportPhone'].toString();
     }
 
     notifyListeners();

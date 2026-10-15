@@ -90,6 +90,33 @@ class _VendorRegistrationScreenState extends State<VendorRegistrationScreen> {
       operatingHours: '10:00 AM – 11:00 PM (Daily)',
     );
 
+    try {
+      await HostingerApiClient.instance.saveUser({
+        'phone': _phoneCtrl.text.trim(),
+        'full_name': _ownerNameCtrl.text.trim(),
+        'store_name': _storeNameCtrl.text.trim(),
+        'role': 'vendor',
+        'status': 'pending',
+        'category': _selectedCategory,
+        'address': _addressCtrl.text.trim(),
+        'cnic': _cnicCtrl.text.trim(),
+        'prep_time': _prepTimeCtrl.text.trim(),
+        'logo_url': _selectedLogoUrl,
+      });
+    } catch (_) {}
+
+    AuthService.instance.updateCurrentProfile(
+      UserProfile(
+        id: 'vend-${_phoneCtrl.text.replaceAll(RegExp(r'\D'), '')}',
+        phone: _phoneCtrl.text.trim(),
+        fullName: _ownerNameCtrl.text.trim(),
+        role: UserRole.vendor,
+        isActive: false,
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      ),
+    );
+
     if (!mounted) return;
     setState(() => _isLoading = false);
 

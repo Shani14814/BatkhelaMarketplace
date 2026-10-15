@@ -1,6 +1,7 @@
 import 'dart:async';
 import '../models/user_profile.dart';
 import 'auth_repository.dart';
+import 'hostinger_api_client.dart';
 
 /// In-Memory Demo Authentication Repository for testing and preview modes
 class DemoAuthRepository implements AuthRepository {
@@ -22,7 +23,7 @@ class DemoAuthRepository implements AuthRepository {
 
   @override
   Future<void> sendPhoneOtp(String phone) async {
-    // In demo mode, simulated OTP send succeeds immediately
+    // Handled in AuthService with HostingerApiClient.sendPhoneOtp
   }
 
   @override
@@ -30,12 +31,26 @@ class DemoAuthRepository implements AuthRepository {
     required String phone,
     required String token,
   }) async {
-    // Default demo customer profile on phone login
-    _currentProfile = UserProfile(
-      id: 'demo-user-${phone.replaceAll(RegExp(r'\D'), '')}',
+    final res = await HostingerApiClient.instance.verifyPhoneOtp(
       phone: phone,
-      fullName: 'Batkhela Customer',
-      role: UserRole.customer,
+      token: token,
+    );
+
+    Map<String, dynamic>? userData;
+    if (res != null && res['ok'] == true && res['user'] is Map) {
+      userData = Map<String, dynamic>.from(res['user'] as Map);
+    }
+
+    final userId = userData?['id']?.toString() ?? 'demo-user-${phone.replaceAll(RegExp(r'\D'), '')}';
+    final fullName = userData?['full_name']?.toString() ?? 'Batkhela Customer';
+    final roleStr = userData?['role']?.toString() ?? 'customer';
+    final role = UserRole.fromString(roleStr);
+
+    _currentProfile = UserProfile(
+      id: userId,
+      phone: phone,
+      fullName: fullName,
+      role: role,
       isActive: true,
       createdAt: DateTime.now(),
       updatedAt: DateTime.now(),

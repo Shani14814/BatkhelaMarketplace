@@ -942,17 +942,17 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                 ),
                 Padding(
                   padding: const EdgeInsets.all(12),
-                  child: OutlinedButton(
-                    onPressed: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Inspecting Order #${order.orderNumber ?? order.id}')),
-                      );
-                    },
-                    style: OutlinedButton.styleFrom(
+                  child: ElevatedButton.icon(
+                    icon: const Icon(Icons.edit_note, size: 16),
+                    label: const Text('Manage'),
+                    onPressed: () => _showOrderManageDialog(order, AdminDemoController.instance),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                      textStyle: const TextStyle(fontSize: 12),
+                      textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                     ),
-                    child: const Text('Details'),
                   ),
                 ),
               ],
@@ -960,6 +960,188 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
           }),
         ],
       ),
+    );
+  }
+
+  void _showOrderManageDialog(MarketplaceOrder order, AdminDemoController ctrl) {
+    showDialog<void>(
+      context: context,
+      builder: (ctx) {
+        OrderStatus currentStatus = order.status;
+        String? selectedRider = order.assignedRiderName;
+
+        return StatefulBuilder(
+          builder: (dialogCtx, setDialogState) {
+            return AlertDialog(
+              backgroundColor: const Color(0xFF0F172A),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              title: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withAlpha(40),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(Icons.receipt_long, color: AppColors.primaryLight, size: 22),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Manage Order #${order.orderNumber ?? order.id}',
+                          style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                        ),
+                        Text(
+                          'Total: PKR ${order.totalAmount.toStringAsFixed(0)} • ${order.paymentMethod}',
+                          style: const TextStyle(color: Colors.white70, fontSize: 12),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              content: SizedBox(
+                width: 480,
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF1E293B),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: Colors.white10),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text('DELIVERY DESTINATION', style: TextStyle(color: Color(0xFF94A3B8), fontSize: 11, fontWeight: FontWeight.bold)),
+                            const SizedBox(height: 4),
+                            Text(order.deliveryAddress, style: const TextStyle(color: Colors.white, fontSize: 13)),
+                            if (order.customerNotes != null && order.customerNotes!.isNotEmpty) ...[
+                              const SizedBox(height: 8),
+                              Text('Notes: ${order.customerNotes}', style: const TextStyle(color: Colors.amberAccent, fontSize: 12)),
+                            ],
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+
+                      const Text('UPDATE STATUS (SYNC TO APP & MYSQL)', style: TextStyle(color: Color(0xFF94A3B8), fontSize: 11, fontWeight: FontWeight.bold)),
+                      const SizedBox(height: 8),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [
+                          _statusChoiceChip(OrderStatus.placed, 'Placed', currentStatus, (s) {
+                            setDialogState(() => currentStatus = s);
+                          }),
+                          _statusChoiceChip(OrderStatus.accepted, 'Accepted', currentStatus, (s) {
+                            setDialogState(() => currentStatus = s);
+                          }),
+                          _statusChoiceChip(OrderStatus.preparing, 'Preparing', currentStatus, (s) {
+                            setDialogState(() => currentStatus = s);
+                          }),
+                          _statusChoiceChip(OrderStatus.readyForPickup, 'Ready for Dispatch', currentStatus, (s) {
+                            setDialogState(() => currentStatus = s);
+                          }),
+                          _statusChoiceChip(OrderStatus.outForDelivery, 'Out for Delivery', currentStatus, (s) {
+                            setDialogState(() => currentStatus = s);
+                          }),
+                          _statusChoiceChip(OrderStatus.delivered, 'Delivered', currentStatus, (s) {
+                            setDialogState(() => currentStatus = s);
+                          }),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+
+                      const Text('DISPATCH RIDER', style: TextStyle(color: Color(0xFF94A3B8), fontSize: 11, fontWeight: FontWeight.bold)),
+                      const SizedBox(height: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF1E293B),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: Colors.white24),
+                        ),
+                        child: DropdownButtonHideUnderline(
+                          child: DropdownButton<String>(
+                            value: selectedRider,
+                            isExpanded: true,
+                            dropdownColor: const Color(0xFF1E293B),
+                            hint: const Text('Select Rider or Vendor Self-Delivery', style: TextStyle(color: Colors.white54, fontSize: 13)),
+                            style: const TextStyle(color: Colors.white, fontSize: 13),
+                            items: [
+                              const DropdownMenuItem(value: 'Vendor Self-Delivery Staff', child: Text('Vendor Self-Delivery Staff')),
+                              ...ctrl.riders.where((r) => r.status == ApprovalStatus.approved).map(
+                                    (r) => DropdownMenuItem(value: r.riderName, child: Text('${r.riderName} (${r.vehicleType})')),
+                                  ),
+                            ],
+                            onChanged: (val) {
+                              setDialogState(() => selectedRider = val);
+                            },
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  child: const Text('Cancel', style: TextStyle(color: Colors.white54)),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    ctrl.updateOrderStatus(
+                      order.id,
+                      currentStatus,
+                      riderName: selectedRider,
+                      assignmentType: selectedRider == 'Vendor Self-Delivery Staff' ? 'vendor_self' : 'platform_rider',
+                    );
+                    Navigator.pop(ctx);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Order #${order.orderNumber ?? order.id} status updated to ${currentStatus.name}!'),
+                        backgroundColor: AppColors.success,
+                      ),
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  ),
+                  child: const Text('Save & Sync Live'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _statusChoiceChip(OrderStatus status, String label, OrderStatus current, void Function(OrderStatus) onSelected) {
+    final isSelected = status == current;
+    return ChoiceChip(
+      label: Text(label),
+      selected: isSelected,
+      onSelected: (_) => onSelected(status),
+      selectedColor: AppColors.primary,
+      backgroundColor: const Color(0xFF1E293B),
+      labelStyle: TextStyle(
+        color: isSelected ? Colors.white : Colors.white70,
+        fontSize: 12,
+        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8), side: BorderSide(color: isSelected ? AppColors.primaryLight : Colors.white24)),
     );
   }
 

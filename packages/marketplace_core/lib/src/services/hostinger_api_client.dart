@@ -396,4 +396,167 @@ class HostingerApiClient {
       durationMinutes: fallbackMin,
     );
   }
+
+  /// Send real phone OTP via WhatsApp & SMS API
+  Future<Map<String, dynamic>?> sendPhoneOtp(String phone) async {
+    if (isTestEnvironment) {
+      return {
+        'ok': true,
+        'otp_code': '123456',
+        'phone': phone,
+        'whatsapp_url': 'https://api.whatsapp.com/send?phone=${phone.replaceAll(RegExp(r'\D'), '')}&text=Your+OTP+is+123456',
+      };
+    }
+    try {
+      final response = await http
+          .post(
+            _buildUri('send_otp'),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({'phone': phone}),
+          )
+          .timeout(const Duration(seconds: 8));
+      if (response.statusCode == 200) {
+        final decoded = jsonDecode(response.body);
+        if (decoded is Map<String, dynamic> && decoded['ok'] == true) {
+          return decoded;
+        }
+      }
+    } catch (e) {
+      debugPrint('HostingerApiClient.sendPhoneOtp error: $e');
+    }
+    return null;
+  }
+
+  /// Verify phone OTP against MySQL backend
+  Future<Map<String, dynamic>?> verifyPhoneOtp({
+    required String phone,
+    required String token,
+  }) async {
+    if (isTestEnvironment) {
+      return {
+        'ok': true,
+        'verified': true,
+        'user': {
+          'id': 'user-${phone.replaceAll(RegExp(r'\D'), '')}',
+          'phone': phone,
+          'full_name': 'Batkhela User',
+          'role': 'customer',
+          'status': 'active',
+        },
+      };
+    }
+    try {
+      final response = await http
+          .post(
+            _buildUri('verify_otp'),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({'phone': phone, 'token': token}),
+          )
+          .timeout(const Duration(seconds: 8));
+      if (response.statusCode == 200) {
+        final decoded = jsonDecode(response.body);
+        if (decoded is Map<String, dynamic> && decoded['ok'] == true) {
+          return decoded;
+        }
+      }
+    } catch (e) {
+      debugPrint('HostingerApiClient.verifyPhoneOtp error: $e');
+    }
+    return null;
+  }
+
+  /// Save or register user in MySQL
+  Future<bool> saveUser(Map<String, dynamic> userJson) async {
+    if (isTestEnvironment) return true;
+    try {
+      final response = await http
+          .post(
+            _buildUri('save_user'),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({'user': userJson}),
+          )
+          .timeout(const Duration(seconds: 8));
+      return response.statusCode == 200;
+    } catch (e) {
+      debugPrint('HostingerApiClient.saveUser error: $e');
+      return false;
+    }
+  }
+
+  /// Fetch users for admin dashboard
+  Future<List<Map<String, dynamic>>?> fetchAdminUsers({String? role}) async {
+    if (isTestEnvironment) return null;
+    try {
+      final action = role != null && role.isNotEmpty ? 'admin_users&role=$role' : 'admin_users';
+      final response = await http
+          .get(_buildUri(action))
+          .timeout(const Duration(seconds: 8));
+      if (response.statusCode == 200) {
+        final decoded = jsonDecode(response.body);
+        if (decoded is Map<String, dynamic> && decoded['users'] is List) {
+          return List<Map<String, dynamic>>.from(
+            (decoded['users'] as List).map((u) => Map<String, dynamic>.from(u as Map)),
+          );
+        }
+      }
+    } catch (e) {
+      debugPrint('HostingerApiClient.fetchAdminUsers error: $e');
+    }
+    return null;
+  }
+
+  /// Update user approval status in admin
+  Future<bool> updateUserStatus(String userId, String status) async {
+    if (isTestEnvironment) return true;
+    try {
+      final response = await http
+          .post(
+            _buildUri('admin_update_user_status'),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({'id': userId, 'status': status}),
+          )
+          .timeout(const Duration(seconds: 8));
+      return response.statusCode == 200;
+    } catch (e) {
+      debugPrint('HostingerApiClient.updateUserStatus error: $e');
+      return false;
+    }
+  }
+
+  /// Fetch platform settings
+  Future<Map<String, dynamic>?> fetchPlatformSettings() async {
+    if (isTestEnvironment) return null;
+    try {
+      final response = await http
+          .get(_buildUri('admin_settings'))
+          .timeout(const Duration(seconds: 8));
+      if (response.statusCode == 200) {
+        final decoded = jsonDecode(response.body);
+        if (decoded is Map<String, dynamic> && decoded['settings'] is Map) {
+          return Map<String, dynamic>.from(decoded['settings'] as Map);
+        }
+      }
+    } catch (e) {
+      debugPrint('HostingerApiClient.fetchPlatformSettings error: $e');
+    }
+    return null;
+  }
+
+  /// Save platform settings
+  Future<bool> savePlatformSettings(Map<String, dynamic> settings) async {
+    if (isTestEnvironment) return true;
+    try {
+      final response = await http
+          .post(
+            _buildUri('admin_settings'),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({'settings': settings}),
+          )
+          .timeout(const Duration(seconds: 8));
+      return response.statusCode == 200;
+    } catch (e) {
+      debugPrint('HostingerApiClient.savePlatformSettings error: $e');
+      return false;
+    }
+  }
 }
